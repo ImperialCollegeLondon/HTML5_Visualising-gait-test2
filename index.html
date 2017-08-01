@@ -1,0 +1,150 @@
+<html>
+  <head>
+    <title>Gait Visualisation!</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+    <script type="text/javascript" src="gl-matrix-min.js"></script>    
+    <script src="webgl-gait.js" type="text/javascript"></script>    
+    <script src="canvasdrawing.js" type="text/javascript"></script>
+    <script src="linegraph.js" type="text/javascript"> </script>      
+    <script src="font.js" type="text/javascript"> </script>
+    <script type="text/javascript" src="leftfoot_webgl-gait.js"></script>
+    <script type="text/javascript" src="rightfoot_webgl-gait.js"></script>
+    <!-- Fragment shader program -->
+    <script id="shader-fs" type="x-shader/x-fragment">    
+      precision mediump float;//define the precision of float
+      //varying vec2 vTextureCoord;//variable from the vertex shader      
+      varying vec3 vLightWeighting;
+      uniform sampler2D uSampler;
+      uniform vec3 ulineColor;//color of the pixel
+      //uniform bool udrawlines;
+      void main(void) {                                 
+        //vec4 textureColor=texture2D(uSampler,vec2(vTextureCoord.s,vTextureCoord.t));//texture uses s and t for their coordinates rather than x,y        
+        //gl_FragColor=vec4(textureColor.rgb*vLightWeighting,textureColor.a);
+        //gl_FragColor=vec4(1.0,1.0,1.0,1.0);
+          gl_FragColor=vec4(vLightWeighting[0]*ulineColor[0],vLightWeighting[1]*ulineColor[1],vLightWeighting[2]*ulineColor[2],1.0);
+      }
+    </script> 
+    <!-- Vertex shader program -->
+    <script id="shader-vs" type="x-shader/x-vertex">    
+     attribute vec3 aVertexPosition;//vertex of an object (passed from the java script program)
+     //attribute vec2 aTextureCoord;//texture of the object
+     attribute vec3 aVertexNormal;
+     //uniform variable -> can access from the Java script
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    uniform mat3 uNMatrix;
+    uniform vec3 uAmbientColor;
+    uniform vec3 uLightingDirection;
+    uniform vec3 uDirectionalColor;
+    uniform bool uUsingLighting;
+    //varying variable -> to the fragment shader
+    varying vec2 vTextureCoord;
+    varying vec3 vLightWeighting;
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);//calculate the position of the vertex
+        //vTextureCoord=aTextureCoord;
+        if (!uUsingLighting) 
+          vLightWeighting=vec3(1.0,1.0,1.0);          
+        else {
+          vec3 transformedNormal = uNMatrix * aVertexNormal;
+          float directionalLightWeighting =max(dot(transformedNormal,uLightingDirection),0.0);
+          vLightWeighting=uAmbientColor+uDirectionalColor*directionalLightWeighting;
+        }
+    }
+      
+    </script>
+
+    <script id="nolighting_shader-fs" type="x-shader/x-fragment">
+      precision mediump float;//define the precision of float
+      uniform vec3 ulineColor;//color of the pixel
+      void main(void) {                                 
+          gl_FragColor=vec4(ulineColor,1.0);
+       }
+    </script> 
+    <script id="nolighting_shader-vs" type="x-shader/x-vertex">    
+     attribute vec3 aVertexPosition;//vertex of an object (passed from the java script program)     
+     //uniform variable -> can access from the Java script
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    attribute vec3 aVertexNormal;//dummy
+    //varying variable -> to the fragment shader
+    void main(void) {
+        vec3 dummy=aVertexNormal;//needs to do this; otherwise, the shader won't work
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);//calculate the position of the vertex    
+    }
+      
+    </script>
+    <style type="text/css">
+    #loadingtext {
+      position:absolute;
+      top:250px;
+      left:150px;
+      font-size:2em;
+      color:white;
+    }
+    </style>
+    <script type="text/javascript">
+    function StartVisualisation()
+    {
+      start();draw();
+      left_foot_start();
+      right_foot_start();
+      //var fileselect=document.getElementById("fileselect");
+      //fileselect.innerHTML="";
+      var showcanvas=document.getElementById("allcanvas");
+      showcanvas.hidden=0;      
+    }
+    </script>
+  </head>      
+   
+  <body onload="StartVisualisation()">
+  <!--<h2>Gait Visualisation</h2>
+  <div id="fileselect">
+  Select the subject file:
+  <select id="filechosen">
+  <option value="2">GA216042</option>
+  <option value="3">GA216043</option>
+  <option value="4">GA216044</option>
+  <option value="5">GA216045</option>
+  <option value="6">GA216046</option>
+  <option value="7">GA216047</option>
+  <option value="9">GA216049</option>
+  </select>
+  <input type="button" id="selectfile" value="Start" onclick="StartVisualisation()" />
+  <br/></div>-->
+  <div id="allcanvas" hidden="1">
+  <div id="showfilename" style="font-size:10px;font-family:Arial"></div>
+    <canvas id="glcanvas" width="1024" height="240">
+      Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+    </canvas><br/>
+    <canvas id="leftfootcanvas" width="512" height="240">
+      Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+    </canvas>
+    <canvas id="rightfootcanvas" width="512" height="240">
+      Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+    </canvas><br/>
+    
+    <table ><tr><td><b>Left Foot Accelerometer</b></td><td><b>Right Foot Accelerometer</b></td></tr>
+    <tr><td><canvas id="left_accelerometer" width="512" height="240"></canvas></td><td><canvas id="right_accelerometer" width="512" height="240"></canvas></td></tr>
+    <tr><td><b>Left Foot Gyroscope</b></td><td><b>Right Foot Gyroscope</b></td></tr>
+    <tr><td><canvas id="left_gyro" width="512" height="240"></canvas></td><td><canvas id="right_gyro" width="512" height="240"></canvas></td></tr>
+    </table>
+    <canvas id="detection_canvas" width="1024" height="120"><br/>
+    </div>
+     <h2  hidden="1">Point light</h2>
+    <table  hidden="1">
+    <tr><td><b>Location</b></td><td>X:<input type="text" id="lightDirectionX" value="12.0"/></td><td>Y:<input type="text" id="lightDirectionY" value="-12.0"/></td>
+    <td>Z:<input type="text" id="lightDirectionZ" value="-25.0"/></td></tr>
+    <tr><td><b>Color</b></td> <td>R:<input type="text" id="directionalR" value="0.5"/></td>
+    <td>G:<input type="text" id="directionalG" value="0.5"/></td>
+    <td>B:<input type="text" id="directionalB" value="0.5"/></td></tr>
+    </table>
+    <h2  hidden="1">Ambient Light</h2>
+    <table hidden="1">
+    <tr><td><b>Color</b></td><td>R: <input type="text" id="ambientR" value="0.4"/></td>
+    <td>G: <input type="text" id="ambientG" value="0.4"/></td>
+    <td>B: <input type="text" id="ambientB" value="0.4"/></td>
+    </tr></table>
+    <br/><br/>
+  </body>
+</html>
