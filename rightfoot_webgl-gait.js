@@ -2,7 +2,7 @@
 // Gait visualisation - right foot sensor
 //
 // shoe model was downloaded from http://www.cadnav.com
-// then 3D Max to convert it to STL file
+// then 3D Max to convert it to OBJ file
 // then used the JNetCAD to convert it to JSON (http://www.johannes-raida.de/jnetcad.htm)
 //
 //
