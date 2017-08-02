@@ -41,7 +41,7 @@ function left_foot_start() {
   mat4.identity(left_foot_SensorRotationMatrix,left_foot_SensorRotationMatrix);  
   left_foot_initShaders(); //initialise the shaders     
   left_foot_initBuffers(); 
-  loadLeftShoe("./3D models/right_shoe_1.json");  
+  loadLeftShoe("./3D models/left_shoe_1.json");  
   left_foot_gl.clearColor(0.0,0.0,0.0,1.0);//clear the canvas
   left_foot_gl.enable(left_foot_gl.DEPTH_TEST);  //enable depth test -> d
   left_foot_glcanvas.onmousedown=left_foot_handleMouseDown;
@@ -192,11 +192,11 @@ function handleLoadedLeftShoe(ShoeData)
   
   left_shoe_NormalBuffer=left_foot_gl.createBuffer();  
   left_foot_gl.bindBuffer(left_foot_gl.ARRAY_BUFFER,left_shoe_NormalBuffer);  
-  //left_foot_gl.bufferData(left_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.normals),left_foot_gl.STATIC_DRAW);
-  left_foot_gl.bufferData(left_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.vertices),left_foot_gl.STATIC_DRAW);
+  left_foot_gl.bufferData(left_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.normals),left_foot_gl.STATIC_DRAW);
+  //left_foot_gl.bufferData(left_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.vertices),left_foot_gl.STATIC_DRAW);
   left_shoe_NormalBuffer.itemSize=3;  
-  //left_shoe_NormalBuffer.numItems=ShoeData.normals.length/3;
-  left_shoe_NormalBuffer.numItems=ShoeData.vertices.length/3;
+  left_shoe_NormalBuffer.numItems=ShoeData.normals.length/3;
+  //left_shoe_NormalBuffer.numItems=ShoeData.vertices.length/3;
 
   left_shoe_IndexBuffer=left_foot_gl.createBuffer();
   left_foot_gl.bindBuffer(left_foot_gl.ELEMENT_ARRAY_BUFFER,left_shoe_IndexBuffer);

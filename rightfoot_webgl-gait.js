@@ -193,11 +193,11 @@ function handleLoadedRightShoe(ShoeData)
   
   right_shoe_NormalBuffer=right_foot_gl.createBuffer();  
   right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_NormalBuffer);  
-  //right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.normals),right_foot_gl.STATIC_DRAW);
-  right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.vertices),right_foot_gl.STATIC_DRAW);
+  right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.normals),right_foot_gl.STATIC_DRAW);
+  //right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.vertices),right_foot_gl.STATIC_DRAW);
   right_shoe_NormalBuffer.itemSize=3;  
-  //right_shoe_NormalBuffer.numItems=ShoeData.normals.length/3;
-  right_shoe_NormalBuffer.numItems=ShoeData.vertices.length/3;
+  right_shoe_NormalBuffer.numItems=ShoeData.normals.length/3;
+  //right_shoe_NormalBuffer.numItems=ShoeData.vertices.length/3;
 
   right_shoe_IndexBuffer=right_foot_gl.createBuffer();
   right_foot_gl.bindBuffer(right_foot_gl.ELEMENT_ARRAY_BUFFER,right_shoe_IndexBuffer);
