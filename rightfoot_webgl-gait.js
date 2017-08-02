@@ -183,6 +183,11 @@ function loadRightShoe(filename)
   }
   request.send();
 }
+function isBitSet( value, position ) {
+
+    return value & ( 1 << position );
+
+  }
 function handleLoadedRightShoe(ShoeData)
 {   
   right_shoe_verticeBuffer=right_foot_gl.createBuffer();  
@@ -191,19 +196,32 @@ function handleLoadedRightShoe(ShoeData)
   right_shoe_verticeBuffer.itemSize=3;  
   right_shoe_verticeBuffer.numItems=ShoeData.vertices.length/3;
   
-  right_shoe_NormalBuffer=right_foot_gl.createBuffer();  
-  right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_NormalBuffer);  
-  right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.normals),right_foot_gl.STATIC_DRAW);
-  //right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.vertices),right_foot_gl.STATIC_DRAW);
-  right_shoe_NormalBuffer.itemSize=3;  
-  right_shoe_NormalBuffer.numItems=ShoeData.normals.length/3;
-  //right_shoe_NormalBuffer.numItems=ShoeData.vertices.length/3;
-
+  
   right_shoe_IndexBuffer=right_foot_gl.createBuffer();
   right_foot_gl.bindBuffer(right_foot_gl.ELEMENT_ARRAY_BUFFER,right_shoe_IndexBuffer);
   var indices=[];
+  var normals=[];
   for (var i=0;i<ShoeData.faces.length;i+=10)
   {
+    var type=ShoeData.faces[i];
+    var isQuad            = isBitSet( type, 0 );
+    var hasMaterial         = isBitSet( type, 1 );
+    var hasFaceUv           = isBitSet( type, 2 );
+    var hasFaceVertexUv     = isBitSet( type, 3 );
+    var hasFaceNormal       = isBitSet( type, 4 );
+    var hasFaceVertexNormal = isBitSet( type, 5 );
+    var hasFaceColor      = isBitSet( type, 6 );
+    var hasFaceVertexColor  = isBitSet( type, 7 );
+    if (hasFaceVertexNormal)
+    {
+      for (var j=0;j<3;j++)
+      {
+        var normalindex=ShoeData.faces[i+4+j]*3;
+        normals.push(ShoeData.normals[normalindex++]);
+        normals.push(ShoeData.normals[normalindex++]);
+        normals.push(ShoeData.normals[normalindex++]);
+      }
+    }
     indices.push(ShoeData.faces[i+1]);
     indices.push(ShoeData.faces[i+2]);
     indices.push(ShoeData.faces[i+3]);
@@ -211,6 +229,16 @@ function handleLoadedRightShoe(ShoeData)
   right_foot_gl.bufferData(right_foot_gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),right_foot_gl.STREAM_DRAW);  
   right_shoe_IndexBuffer.itemSize=1;
   right_shoe_IndexBuffer.numItems=indices.length;  
+  right_shoe_NormalBuffer=right_foot_gl.createBuffer();  
+  right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_NormalBuffer);  
+  //right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.normals),right_foot_gl.STATIC_DRAW);
+  right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(normals),right_foot_gl.STATIC_DRAW);
+  //right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.vertices),right_foot_gl.STATIC_DRAW);
+  right_shoe_NormalBuffer.itemSize=3;  
+  //right_shoe_NormalBuffer.numItems=ShoeData.normals.length/3;
+  right_shoe_NormalBuffer.numItems=normals.length/3;
+  //right_shoe_NormalBuffer.numItems=ShoeData.vertices.length/3;
+
   
 }
 //--------------------------------------------------
