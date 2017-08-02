@@ -1,6 +1,9 @@
 //*************************************************************
 // Gait visualisation - right foot sensor
 //
+// shoe model was downloaded from http://www.cadnav.com
+// then 3D Max to convert it to STL file
+// then used the JNetCAD to convert it to JSON (http://www.johannes-raida.de/jnetcad.htm)
 //
 //
 // Benny Lo 
@@ -23,7 +26,11 @@ var right_foot_lastMouseX=null;
 var right_foot_lastMouseY=null;
 var right_foot_SensorRotationMatrix;
 var right_foot_timer;
-var right_foot_viewanglex=15,right_foot_viewangley=15,right_foot_viewanglez=0;
+var right_foot_viewanglex=15,right_foot_viewangley=-15,right_foot_viewanglez=0;
+var right_shoe_verticeBuffer;
+var right_shoe_NormalBuffer;
+var right_shoe_TextureCoordBuffer;
+var right_shoe_IndexBuffer;
 
 function right_foot_start() {
   right_foot_glcanvas = document.getElementById("rightfootcanvas");
@@ -36,19 +43,19 @@ function right_foot_start() {
   right_foot_SensorRotationMatrix=mat4.create();  
   mat4.identity(right_foot_SensorRotationMatrix,right_foot_SensorRotationMatrix);  
   right_foot_initShaders(); //initialise the shaders     
-  right_foot_initBuffers();  
+  right_foot_initBuffers();    
+  loadRightShoe("./3D models/right_shoe_1.json");
   right_foot_gl.clearColor(0.0,0.0,0.0,1.0);//clear the canvas
   right_foot_gl.enable(right_foot_gl.DEPTH_TEST);  //enable depth test -> d
   right_foot_glcanvas.onmousedown=right_foot_handleMouseDown;
   right_foot_glcanvas.onmouseup=right_foot_handleMouseUp;
   document.onmousemove=right_foot_handleMouseMove;
-  //setTimer();  
+  //setTimer();    
   right_foot_drawScene();  
 }
 
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-function right_foot_initBuffers()
-{//divide the sphere into triangles through dividing latitudes and longitude bands    
+function right_foot_initBuffers(){//divide the sphere into triangles through dividing latitudes and longitude bands    
     var cubevertices=[
       //front face  
       -1.0,-1.0,1.0,
@@ -162,7 +169,49 @@ function right_foot_initBuffers()
     right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_axisNormalBuffer);
     right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(arrowvertex),right_foot_gl.STATIC_DRAW);
     right_foot_axisNormalBuffer.itemSize=3;
-    right_foot_axisNormalBuffer.numItems=arrowvertex.length/3;
+    right_foot_axisNormalBuffer.numItems=arrowvertex.length/3;}
+//=========================================
+function loadRightShoe(filename)
+{//load the mac book JSON file
+  var request=new XMLHttpRequest();
+  request.open("GET",filename);
+  request.onreadystatechange=function(){
+    if (request.readyState==4)
+    {
+      handleLoadedRightShoe(JSON.parse(request.responseText));//JSON parse and create the vertices of the laptop
+    }
+  }
+  request.send();
+}
+function handleLoadedRightShoe(ShoeData)
+{   
+  right_shoe_verticeBuffer=right_foot_gl.createBuffer();  
+  right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_verticeBuffer);  
+  right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.vertices),right_foot_gl.STATIC_DRAW);
+  right_shoe_verticeBuffer.itemSize=3;  
+  right_shoe_verticeBuffer.numItems=ShoeData.vertices.length/3;
+  
+  right_shoe_NormalBuffer=right_foot_gl.createBuffer();  
+  right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_NormalBuffer);  
+  //right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.normals),right_foot_gl.STATIC_DRAW);
+  right_foot_gl.bufferData(right_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.vertices),right_foot_gl.STATIC_DRAW);
+  right_shoe_NormalBuffer.itemSize=3;  
+  //right_shoe_NormalBuffer.numItems=ShoeData.normals.length/3;
+  right_shoe_NormalBuffer.numItems=ShoeData.vertices.length/3;
+
+  right_shoe_IndexBuffer=right_foot_gl.createBuffer();
+  right_foot_gl.bindBuffer(right_foot_gl.ELEMENT_ARRAY_BUFFER,right_shoe_IndexBuffer);
+  var indices=[];
+  for (var i=0;i<ShoeData.faces.length;i+=10)
+  {
+    indices.push(ShoeData.faces[i+1]);
+    indices.push(ShoeData.faces[i+2]);
+    indices.push(ShoeData.faces[i+3]);
+  }
+  right_foot_gl.bufferData(right_foot_gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),right_foot_gl.STREAM_DRAW);  
+  right_shoe_IndexBuffer.itemSize=1;
+  right_shoe_IndexBuffer.numItems=indices.length;  
+  
 }
 //--------------------------------------------------
 //mouse handling functions
@@ -271,17 +320,14 @@ function right_foot_drawScene() {
   right_foot_mvPopMatrix();
   //--------------------------------
   //draw a cube
-  right_foot_mvPushMatrix();
+  /*right_foot_mvPushMatrix();
   mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[0,0,-5]);//rotate to the tilt angle
   right_foot_gl.useProgram(right_foot_shaderProgram);        
   right_foot_gl.uniform3f(right_foot_shaderProgram.ambientColorUniform,
-      parseFloat(document.getElementById("ambientR").value*1.5),
-      parseFloat(document.getElementById("ambientG").value*1.5),
-      parseFloat(document.getElementById("ambientB").value*1.5));
-  var lightingDirection=[
-      parseFloat(document.getElementById("lightDirectionX").value),
-      parseFloat(document.getElementById("lightDirectionY").value),
-      parseFloat(document.getElementById("lightDirectionZ").value)];
+      parseFloat(document.getElementById("ambientR").value)*.5,
+      parseFloat(document.getElementById("ambientG").value)*.5,
+      parseFloat(document.getElementById("ambientB").value)*.5);
+      var lightingDirection=[1,1,-5];
       var adjustedLD=vec3.create();//create a vector for the normalised direction
   vec3.normalize(adjustedLD,lightingDirection);  //normalise the lighting direction vector
   vec3.scale(adjustedLD,adjustedLD,-1);//scale by -1  
@@ -304,7 +350,57 @@ function right_foot_drawScene() {
   right_foot_gl.bindBuffer(right_foot_gl.ELEMENT_ARRAY_BUFFER,right_foot_SensorIndexBuffer);//bind the index buffer
   right_foot_setMatrixUniforms();  
   right_foot_gl.drawElements(right_foot_gl.TRIANGLES,right_foot_SensorIndexBuffer.numItems,right_foot_gl.UNSIGNED_SHORT,0);  
-  right_foot_mvPopMatrix();
+  right_foot_mvPopMatrix();*/
+  //----------------------------------------------
+  //draw shoe
+  if (right_shoe_verticeBuffer && right_shoe_NormalBuffer)
+  {
+    right_foot_mvPushMatrix();
+    mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[1,-1,-4]);//rotate to the tilt angle    
+    right_foot_gl.useProgram(right_foot_shaderProgram);        
+    right_foot_gl.uniform3f(right_foot_shaderProgram.ambientColorUniform,
+     0.3,0.3,0.3);      
+    var adjustedLD=vec3.create();//create a vector for the normalised direction
+    var lightingDirection=[10,-5,-4];
+    vec3.normalize(adjustedLD,lightingDirection);  //normalise the lighting direction vector       
+    vec3.scale(adjustedLD,adjustedLD,-1);//scale by -1  
+    right_foot_gl.uniform3fv(right_foot_shaderProgram.lightingDirectionUniform,adjustedLD);//set the parameter in the shading program
+    right_foot_gl.uniform3f(right_foot_shaderProgram.directionalColorUniform,
+        0.2,0.2,0.2);
+    var newRotationMatrix=mat4.create();
+    mat4.identity(newRotationMatrix,newRotationMatrix);
+    mat4.rotate(newRotationMatrix,newRotationMatrix,degToRad(90),[0,1,0]);    
+    mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewanglez),[0,0,1]);  
+    mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewanglex),[1,0,0]);   
+    mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewangley),[0,1,0]);     
+    //mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.5,0.5,0.5]);            
+    right_foot_gl.uniform1i(right_foot_shaderProgram.useLightingUniform,true);  
+    right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,0.5,0.6,1);
+    mat4.multiply(right_foot_mvMatrix,right_foot_mvMatrix,right_foot_SensorRotationMatrix);        
+    mat4.multiply(right_foot_mvMatrix,right_foot_mvMatrix,newRotationMatrix);
+    right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_NormalBuffer);
+    right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexNormalAttribute,right_shoe_NormalBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);    
+  
+    right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_verticeBuffer);  
+    right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexPositionAttribute,right_shoe_verticeBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);
+    right_foot_gl.bindBuffer(right_foot_gl.ELEMENT_ARRAY_BUFFER,right_shoe_IndexBuffer);
+    right_foot_setMatrixUniforms();  
+    right_foot_gl.drawElements(right_foot_gl.TRIANGLES,right_shoe_IndexBuffer.numItems,right_foot_gl.UNSIGNED_SHORT,0);
+    //---------------------------
+    //draw the sensor cube
+    right_foot_gl.uniform3f(right_foot_shaderProgram.ambientColorUniform, 0.8,0.8,0.8);      
+    mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.6,0.4,0.4]);
+    mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[1,3,-2.5]);//rotate to the tilt angle    
+    right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorPositionBuffer);  
+    right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexPositionAttribute,right_foot_SensorPositionBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);
+    right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorNormalBuffer);
+    right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexNormalAttribute,right_foot_SensorNormalBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);  
+    right_foot_gl.bindBuffer(right_foot_gl.ELEMENT_ARRAY_BUFFER,right_foot_SensorIndexBuffer);//bind the index buffer
+    right_foot_setMatrixUniforms();  
+    right_foot_gl.drawElements(right_foot_gl.TRIANGLES,right_foot_SensorIndexBuffer.numItems,right_foot_gl.UNSIGNED_SHORT,0);
+    //---------------------------
+    right_foot_mvPopMatrix();
+  }
   
 }
 // initShaders - Initialize the shaders, so WebGL knows how to light our scene.
