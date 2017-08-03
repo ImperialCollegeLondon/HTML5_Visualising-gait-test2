@@ -366,12 +366,15 @@ function left_foot_drawScene() {
     left_foot_gl.uniform3f(left_foot_shaderProgram.ambientColorUniform,
      0.3,0.3,0.3);      
     var adjustedLD=vec3.create();//create a vector for the normalised direction
-    var lightingDirection=[10,-5,-4];
+    //var lightingDirection=[10,-5,-4];
+    //var lightingDirection=[-4,4,0.8];    
+    var lightingDirection=[-22,-21,-16];    
     vec3.normalize(adjustedLD,lightingDirection);  //normalise the lighting direction vector       
     vec3.scale(adjustedLD,adjustedLD,-1);//scale by -1  
     left_foot_gl.uniform3fv(left_foot_shaderProgram.lightingDirectionUniform,adjustedLD);//set the parameter in the shading program
     left_foot_gl.uniform3f(left_foot_shaderProgram.directionalColorUniform,
-        0.2,0.2,0.2);
+    	0.5,0.5,0.5);
+        //0.2,0.2,0.2);
     var newRotationMatrix=mat4.create();
     mat4.identity(newRotationMatrix,newRotationMatrix);
     mat4.rotate(newRotationMatrix,newRotationMatrix,degToRad(90),[0,1,0]);    
@@ -380,7 +383,8 @@ function left_foot_drawScene() {
     mat4.rotate(left_foot_mvMatrix,left_foot_mvMatrix,degToRad(left_foot_viewangley),[0,1,0]);     
     //mat4.scale(left_foot_mvMatrix,left_foot_mvMatrix,[0.5,0.5,0.5]);            
     left_foot_gl.uniform1i(left_foot_shaderProgram.useLightingUniform,true);  
-    left_foot_gl.uniform3f(left_foot_shaderProgram.lineColor,0.5,0.6,1);
+    //left_foot_gl.uniform3f(left_foot_shaderProgram.lineColor,0.5,0.6,1);
+    left_foot_gl.uniform3f(left_foot_shaderProgram.lineColor,1,1,1);
     mat4.multiply(left_foot_mvMatrix,left_foot_mvMatrix,left_foot_SensorRotationMatrix);        
     mat4.multiply(left_foot_mvMatrix,left_foot_mvMatrix,newRotationMatrix);
     left_foot_gl.bindBuffer(left_foot_gl.ARRAY_BUFFER,left_shoe_NormalBuffer);
@@ -394,8 +398,9 @@ function left_foot_drawScene() {
     //---------------------------
     //draw the sensor cube
     left_foot_gl.uniform3f(left_foot_shaderProgram.ambientColorUniform, 0.8,0.8,0.8);      
-    mat4.scale(left_foot_mvMatrix,left_foot_mvMatrix,[0.6,0.4,0.4]);
-    mat4.translate(left_foot_mvMatrix,left_foot_mvMatrix,[1,3,-2.5]);//rotate to the tilt angle    
+    left_foot_gl.uniform3f(left_foot_shaderProgram.lineColor,0.5,0.6,1);
+    mat4.scale(left_foot_mvMatrix,left_foot_mvMatrix,[0.1,0.2,0.4]);
+    mat4.translate(left_foot_mvMatrix,left_foot_mvMatrix,[5,7,-2.5]);//rotate to the tilt angle    
     left_foot_gl.bindBuffer(left_foot_gl.ARRAY_BUFFER,left_foot_SensorPositionBuffer);  
     left_foot_gl.vertexAttribPointer(left_foot_shaderProgram.vertexPositionAttribute,left_foot_SensorPositionBuffer.itemSize,left_foot_gl.FLOAT,false,0,0);
     left_foot_gl.bindBuffer(left_foot_gl.ARRAY_BUFFER,left_foot_SensorNormalBuffer);

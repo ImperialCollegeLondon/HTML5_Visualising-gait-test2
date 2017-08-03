@@ -47,7 +47,8 @@
           vLightWeighting=vec3(1.0,1.0,1.0);          
         else {
           vec3 transformedNormal = uNMatrix * aVertexNormal;
-          float directionalLightWeighting =max(dot(transformedNormal,uLightingDirection),0.0);
+          float directionalLightWeighting =max(dot(transformedNormal,uLightingDirection),.0);
+
           vLightWeighting=uAmbientColor+uDirectionalColor*directionalLightWeighting;
         }
     }
@@ -114,22 +115,23 @@
   <br/></div>-->
   <div id="allcanvas" hidden="1">
   <div id="showfilename" style="font-size:10px;font-family:Arial"></div>
-    <canvas id="glcanvas" width="1024" height="240">
+    <canvas id="glcanvas" tabindex='1' width="1024" height="240"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
     </canvas><br/>
-    <canvas id="leftfootcanvas" width="512" height="240">
+    <canvas tabindex='1' id="leftfootcanvas" width="512" height="240"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
-    </canvas>
-    <canvas id="rightfootcanvas" width="512" height="240">
+    </canvas>    
+    <canvas tabindex='1' id="rightfootcanvas" width="512" height="240"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
     </canvas><br/>
+    <div id="rightlightdir"></div>
     
-    <table ><tr><td><b>Left Foot Accelerometer</b></td><td><b>Right Foot Accelerometer</b></td></tr>
+    <table hidden="1"><tr><td><b>Left Foot Accelerometer</b></td><td><b>Right Foot Accelerometer</b></td></tr>
     <tr><td><canvas id="left_accelerometer" width="512" height="240"></canvas></td><td><canvas id="right_accelerometer" width="512" height="240"></canvas></td></tr>
     <tr><td><b>Left Foot Gyroscope</b></td><td><b>Right Foot Gyroscope</b></td></tr>
     <tr><td><canvas id="left_gyro" width="512" height="240"></canvas></td><td><canvas id="right_gyro" width="512" height="240"></canvas></td></tr>
     </table>
-    <canvas id="detection_canvas" width="1024" height="120"><br/>
+    <canvas id="detection_canvas" width="1024" height="120" hidden="1"><br/>
     </div>
      <h2  hidden="1">Point light</h2>
     <table  hidden="1">

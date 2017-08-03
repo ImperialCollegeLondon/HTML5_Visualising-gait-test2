@@ -155,7 +155,7 @@ function start() {
 
 function setTimer()
 {
-    timer=window.setTimeout(OnTimer,100);        
+    timer=window.setTimeout(OnTimer,1);        
 }
 function resetTimer()
 {

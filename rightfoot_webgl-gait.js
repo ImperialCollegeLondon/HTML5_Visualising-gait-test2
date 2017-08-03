@@ -31,9 +31,13 @@ var right_shoe_verticeBuffer;
 var right_shoe_NormalBuffer;
 var right_shoe_TextureCoordBuffer;
 var right_shoe_IndexBuffer;
+var right_foot_currentlyPressedKeys={};//the key being pressed
+var right_foot_light_x=-4,right_foot_light_y=4,right_foot_light_z=0.8;
+var right_foot_light_text=null;
 
 function right_foot_start() {
   right_foot_glcanvas = document.getElementById("rightfootcanvas");
+  right_foot_light_text=document.getElementById("rightlightdir");
 
   right_foot_gl=initWebGL(right_foot_glcanvas);      // Initialize the GL context
   
@@ -44,12 +48,18 @@ function right_foot_start() {
   mat4.identity(right_foot_SensorRotationMatrix,right_foot_SensorRotationMatrix);  
   right_foot_initShaders(); //initialise the shaders     
   right_foot_initBuffers();    
-  loadRightShoe("./3D models/right_shoe_1.json");
+  //loadRightShoe("./3D models/right_shoe_1.json");
+  loadRightShoe("./3D models/left_shoe_1.json");
   right_foot_gl.clearColor(0.0,0.0,0.0,1.0);//clear the canvas
   right_foot_gl.enable(right_foot_gl.DEPTH_TEST);  //enable depth test -> d
   right_foot_glcanvas.onmousedown=right_foot_handleMouseDown;
   right_foot_glcanvas.onmouseup=right_foot_handleMouseUp;
   document.onmousemove=right_foot_handleMouseMove;
+
+  right_foot_glcanvas.addEventListener("keydown",right_foot_handleKeyDown);//handle key down events
+  right_foot_glcanvas.addEventListener("keyup",right_foot_handleKeyUp);//handle key up events
+  //document.onkeydown=right_foot_handleKeyDown;
+  
   //setTimer();    
   right_foot_drawScene();  
 }
@@ -237,9 +247,44 @@ function handleLoadedRightShoe(ShoeData)
   right_shoe_NormalBuffer.itemSize=3;  
   //right_shoe_NormalBuffer.numItems=ShoeData.normals.length/3;
   right_shoe_NormalBuffer.numItems=normals.length/3;
-  //right_shoe_NormalBuffer.numItems=ShoeData.vertices.length/3;
-
-  
+  //right_shoe_NormalBuffer.numItems=ShoeData.vertices.length/3;  
+}
+//-----------------------------------------
+//keyboard event handlers
+function right_foot_handleKeyDown(event)
+{//handler for key down events
+  right_foot_currentlyPressedKeys[event.keyCode]=true; 
+  right_foot_handleKeys();//handle key pressed events  
+}
+function right_foot_handleKeyUp(event)
+{//handler for key down events
+  right_foot_currentlyPressedKeys[event.keyCode]=false;    
+}
+function right_foot_handleKeys()
+{//handler for key pressed
+  if (right_foot_currentlyPressedKeys[33])//page up
+    right_foot_light_z+=0.1;
+  else if (right_foot_currentlyPressedKeys[34])//page down
+    right_foot_light_z-=0.1; 
+  if (right_foot_currentlyPressedKeys[38]||right_foot_currentlyPressedKeys[87])//up cursor key or w
+  {
+    //if (yangle<45)
+    right_foot_light_y +=0.1;
+  }
+  else if (right_foot_currentlyPressedKeys[40]|| right_foot_currentlyPressedKeys[83])//down cursor key or x
+  {
+    //if (yangle>-45)
+    right_foot_light_y-=0.1;
+  }
+  if (right_foot_currentlyPressedKeys[37]||right_foot_currentlyPressedKeys[65])//left cursor key or A    
+    right_foot_light_x-=0.1;
+  else if (right_foot_currentlyPressedKeys[39]||right_foot_currentlyPressedKeys[68])//right cursor or D
+    right_foot_light_x+=0.1;
+  if (right_foot_light_text!=null)
+  {
+    right_foot_light_text.innerHTML="Light direction:"+right_foot_light_x+","+right_foot_light_y+","+right_foot_light_z;
+  }
+  right_foot_drawScene();
 }
 //--------------------------------------------------
 //mouse handling functions
@@ -348,53 +393,55 @@ function right_foot_drawScene() {
   right_foot_mvPopMatrix();
   //--------------------------------
   //draw a cube
-  /*right_foot_mvPushMatrix();
-  mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[0,0,-5]);//rotate to the tilt angle
-  right_foot_gl.useProgram(right_foot_shaderProgram);        
-  right_foot_gl.uniform3f(right_foot_shaderProgram.ambientColorUniform,
-      parseFloat(document.getElementById("ambientR").value)*.5,
-      parseFloat(document.getElementById("ambientG").value)*.5,
-      parseFloat(document.getElementById("ambientB").value)*.5);
-      var lightingDirection=[1,1,-5];
-      var adjustedLD=vec3.create();//create a vector for the normalised direction
-  vec3.normalize(adjustedLD,lightingDirection);  //normalise the lighting direction vector
-  vec3.scale(adjustedLD,adjustedLD,-1);//scale by -1  
-    mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewanglez),[0,0,1]);  
-  mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewanglex),[1,0,0]);  	
-  mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewangley),[0,1,0]); 
-  mat4.multiply(right_foot_mvMatrix,right_foot_mvMatrix,right_foot_SensorRotationMatrix);
-  mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.6,0.4,0.4]);
-  right_foot_gl.uniform3fv(right_foot_shaderProgram.lightingDirectionUniform,adjustedLD);//set the parameter in the shading program
-  right_foot_gl.uniform3f(right_foot_shaderProgram.directionalColorUniform,
-        parseFloat(document.getElementById("directionalR").value),
-        parseFloat(document.getElementById("directionalG").value),
-        parseFloat(document.getElementById("directionalB").value));
-  right_foot_gl.uniform1i(right_foot_shaderProgram.useLightingUniform,true);  
-  right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,0.5,0.6,1.0);
-  right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorPositionBuffer);  
-  right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexPositionAttribute,right_foot_SensorPositionBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);
-  right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorNormalBuffer);
-  right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexNormalAttribute,right_foot_SensorNormalBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);  
-  right_foot_gl.bindBuffer(right_foot_gl.ELEMENT_ARRAY_BUFFER,right_foot_SensorIndexBuffer);//bind the index buffer
-  right_foot_setMatrixUniforms();  
-  right_foot_gl.drawElements(right_foot_gl.TRIANGLES,right_foot_SensorIndexBuffer.numItems,right_foot_gl.UNSIGNED_SHORT,0);  
-  right_foot_mvPopMatrix();*/
+    /*right_foot_mvPushMatrix();
+    mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[0,0,-5]);//rotate to the tilt angle
+    right_foot_gl.useProgram(right_foot_shaderProgram);        
+    right_foot_gl.uniform3f(right_foot_shaderProgram.ambientColorUniform,
+        parseFloat(document.getElementById("ambientR").value)*.5,
+        parseFloat(document.getElementById("ambientG").value)*.5,
+        parseFloat(document.getElementById("ambientB").value)*.5);
+        var lightingDirection=[1,1,-5];
+        var adjustedLD=vec3.create();//create a vector for the normalised direction
+    vec3.normalize(adjustedLD,lightingDirection);  //normalise the lighting direction vector
+    vec3.scale(adjustedLD,adjustedLD,-1);//scale by -1  
+      mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewanglez),[0,0,1]);  
+    mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewanglex),[1,0,0]);  	
+    mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewangley),[0,1,0]); 
+    mat4.multiply(right_foot_mvMatrix,right_foot_mvMatrix,right_foot_SensorRotationMatrix);
+    mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.6,0.4,0.4]);
+    right_foot_gl.uniform3fv(right_foot_shaderProgram.lightingDirectionUniform,adjustedLD);//set the parameter in the shading program
+    right_foot_gl.uniform3f(right_foot_shaderProgram.directionalColorUniform,
+          parseFloat(document.getElementById("directionalR").value),
+          parseFloat(document.getElementById("directionalG").value),
+          parseFloat(document.getElementById("directionalB").value));
+    right_foot_gl.uniform1i(right_foot_shaderProgram.useLightingUniform,true);  
+    right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,0.5,0.6,1.0);
+    right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorPositionBuffer);  
+    right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexPositionAttribute,right_foot_SensorPositionBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);
+    right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorNormalBuffer);
+    right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexNormalAttribute,right_foot_SensorNormalBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);  
+    right_foot_gl.bindBuffer(right_foot_gl.ELEMENT_ARRAY_BUFFER,right_foot_SensorIndexBuffer);//bind the index buffer
+    right_foot_setMatrixUniforms();  
+    right_foot_gl.drawElements(right_foot_gl.TRIANGLES,right_foot_SensorIndexBuffer.numItems,right_foot_gl.UNSIGNED_SHORT,0);  
+    right_foot_mvPopMatrix();*/
   //----------------------------------------------
   //draw shoe
   if (right_shoe_verticeBuffer && right_shoe_NormalBuffer)
   {
     right_foot_mvPushMatrix();
-    mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[1,-1,-4]);//rotate to the tilt angle    
+    mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[1,-1,-4]);//rotate to the tilt angle        
     right_foot_gl.useProgram(right_foot_shaderProgram);        
     right_foot_gl.uniform3f(right_foot_shaderProgram.ambientColorUniform,
      0.3,0.3,0.3);      
     var adjustedLD=vec3.create();//create a vector for the normalised direction
-    var lightingDirection=[10,-5,-4];
+    //var lightingDirection=[0,-5,-4];    
+    var lightingDirection=[-22,-21,-16];    
+    //var lightingDirection=[right_foot_light_x,right_foot_light_y,right_foot_light_z];
     vec3.normalize(adjustedLD,lightingDirection);  //normalise the lighting direction vector       
     vec3.scale(adjustedLD,adjustedLD,-1);//scale by -1  
     right_foot_gl.uniform3fv(right_foot_shaderProgram.lightingDirectionUniform,adjustedLD);//set the parameter in the shading program
     right_foot_gl.uniform3f(right_foot_shaderProgram.directionalColorUniform,
-        0.2,0.2,0.2);
+        0.5,0.5,0.5);
     var newRotationMatrix=mat4.create();
     mat4.identity(newRotationMatrix,newRotationMatrix);
     mat4.rotate(newRotationMatrix,newRotationMatrix,degToRad(90),[0,1,0]);    
@@ -403,22 +450,23 @@ function right_foot_drawScene() {
     mat4.rotate(right_foot_mvMatrix,right_foot_mvMatrix,degToRad(right_foot_viewangley),[0,1,0]);     
     //mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.5,0.5,0.5]);            
     right_foot_gl.uniform1i(right_foot_shaderProgram.useLightingUniform,true);  
-    right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,0.5,0.6,1);
+    //right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,0.5,0.6,1);
+    right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,1,1,1);
     mat4.multiply(right_foot_mvMatrix,right_foot_mvMatrix,right_foot_SensorRotationMatrix);        
-    mat4.multiply(right_foot_mvMatrix,right_foot_mvMatrix,newRotationMatrix);
-    right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_NormalBuffer);
-    right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexNormalAttribute,right_shoe_NormalBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);    
-  
+    mat4.multiply(right_foot_mvMatrix,right_foot_mvMatrix,newRotationMatrix);    
     right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_verticeBuffer);  
     right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexPositionAttribute,right_shoe_verticeBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);
+    right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_shoe_NormalBuffer);
+    right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexNormalAttribute,right_shoe_NormalBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);      
     right_foot_gl.bindBuffer(right_foot_gl.ELEMENT_ARRAY_BUFFER,right_shoe_IndexBuffer);
     right_foot_setMatrixUniforms();  
     right_foot_gl.drawElements(right_foot_gl.TRIANGLES,right_shoe_IndexBuffer.numItems,right_foot_gl.UNSIGNED_SHORT,0);
     //---------------------------
     //draw the sensor cube
     right_foot_gl.uniform3f(right_foot_shaderProgram.ambientColorUniform, 0.8,0.8,0.8);      
-    mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.6,0.4,0.4]);
-    mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[1,3,-2.5]);//rotate to the tilt angle    
+    mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.1,0.2,0.4]);
+    right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,0.5,0.6,1);
+    mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[5,7,-2.5]);//rotate to the tilt angle    
     right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorPositionBuffer);  
     right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexPositionAttribute,right_foot_SensorPositionBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);
     right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorNormalBuffer);
