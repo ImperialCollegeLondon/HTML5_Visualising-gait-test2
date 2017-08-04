@@ -107,6 +107,7 @@ var curstep=0;
   var sensor_rec_left_angleZ=12;
   var sensor_rec_left_FF=13;
 
+
   var sensor_rec_right_accelx=14;
   var sensor_rec_right_accely=15;
   var sensor_rec_right_accelz=16;
@@ -121,6 +122,15 @@ var curstep=0;
   var sensor_rec_right_angleY=25;
   var sensor_rec_right_angleZ=26;
   var sensor_rec_right_FF=27;
+
+  var sensor_rec_left_dispx=28;
+  var sensor_rec_left_dispy=29;
+  var sensor_rec_left_dispz=30;
+  var sensor_rec_right_dispx=31;
+  var sensor_rec_right_dispy=32;
+  var sensor_rec_right_dispz=33;
+
+  var sensor_rec_no_col=34;
 
 // start - initialise the buffer and GL
 function start() {
@@ -142,13 +152,14 @@ function start() {
   glcanvas.onmousedown=handleMouseDown;
   glcanvas.onmouseup=handleMouseUp;
   document.onmousemove=handleMouseMove;
-  /*var which_subject=document.getElementById("filechosen");
+  var which_subject=document.getElementById("filechosen");
   var filename="GA21604"+which_subject.value+"_result.csv";
   //console.log(filename);
   var showfilename=document.getElementById("showfilename");
-      showfilename.innerHTML="File:"+filename;*/
+      showfilename.innerHTML="File:"+filename;
   //loadDataFile("GA216042_result.csv");
-  var filename="data_subject_3_with_angles.csv";
+  //var filename="data_subject_3_with_angles.csv";
+  //var filename="GA216042_result.csv";
   loadDataFile(filename);
   setTimer();
 }
@@ -735,8 +746,7 @@ function prepareFile(pdata){ //parase the file into an array of strings (of each
     xinc=31.0/trackend_time[0];    
     deginc=90.0/trackend_time[0];
     if (leftheel_strike_time[0][0] < rightheel_strike_time[0][0])
-    {
-      console.log("here");
+    {      
       left_heel_strike=true;
       left_pelvis_angle=35;
       left_knee_angle=130;
@@ -752,7 +762,8 @@ function prepareFile(pdata){ //parase the file into an array of strings (of each
       shoulder_inc=60/heel_strike_time[0][0];
       //currightstep=1;
     curstep++;
-    console.log("cur leftstep:"+curleftstep+" cur rightstep:"+currightstep);}
+  //  console.log("cur leftstep:"+curleftstep+" cur rightstep:"+currightstep);
+  }
 function GetLine(lineno){//get data from each line
     var result=new Array();    
     var strarray=linearray[lineno].split(',');
@@ -773,7 +784,7 @@ function loadDataFile(filename)
 }
 
 function parseSensorData(){
-  var nocols=28;
+  var nocols=sensor_rec_no_col;
   sensordata=new Array(nocols);
   for (var i=0;i<nocols;i++)
     sensordata[i]=new Array();
@@ -818,6 +829,11 @@ function parseSensorData(){
       sensordata[j][i]=parseFloat(newdata[j++]); sensordata[j][i] = parseFloat(newdata[j++]);sensordata[j][i]  = parseFloat(newdata[j++]);
       //right flat foot
       sensordata[j][i]=parseInt(newdata[j++]);
+      //left displacement
+      sensordata[j][i]  = parseFloat(newdata[j++]); sensordata[j][i]  = parseFloat(newdata[j++]);sensordata[j][i] = parseFloat(newdata[j++]);
+      //right displacement
+      sensordata[j][i]  = parseFloat(newdata[j++]); sensordata[j][i]  = parseFloat(newdata[j++]);sensordata[j][i] = parseFloat(newdata[j++]);
+
       if (sensordata[sensor_rec_left_HS][i]==1)
       {//left heel strike
         no_left_steps[track_no]++;
@@ -866,7 +882,7 @@ function parseSensorData(){
       }
     }      
   }
-  console.log("no turns"+noturns);  
+  /*console.log("no turns"+noturns);  
   for (var i=0;i<track_no;i++)
   {
    // console.log("["+i+"]="+no_left_steps[i]+","+no_right_steps[i]);
@@ -888,7 +904,7 @@ function parseSensorData(){
       str=str+heel_strike_time[i][j]+",";
     }
     console.log(str);
-  }
+  }*/
   /*  for (var j=0;j<sensordata[0].length;j++)
     {
         LineGraph_AddData(0,0,sensordata[0][j]);

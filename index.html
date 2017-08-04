@@ -90,16 +90,16 @@
       start();draw();
       left_foot_start();
       right_foot_start();
-      //var fileselect=document.getElementById("fileselect");
-      //fileselect.innerHTML="";
+      var fileselect=document.getElementById("fileselect");
+      fileselect.innerHTML="";
       var showcanvas=document.getElementById("allcanvas");
       showcanvas.hidden=0;      
     }
     </script>
   </head>      
    
-  <body onload="StartVisualisation()">
-  <!--<h2>Gait Visualisation</h2>
+  <body onload="">
+  <h2>Gait Visualisation</h2>
   <div id="fileselect">
   Select the subject file:
   <select id="filechosen">
@@ -112,21 +112,25 @@
   <option value="9">GA216049</option>
   </select>
   <input type="button" id="selectfile" value="Start" onclick="StartVisualisation()" />
-  <br/></div>-->
+  <br/></div>
   <div id="allcanvas" hidden="1">
   <div id="showfilename" style="font-size:10px;font-family:Arial"></div>
     <canvas id="glcanvas" tabindex='1' width="1024" height="240"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
     </canvas><br/>
+    <table><tr><td><b>Left foot orientation</b></td>  <td><b>Right foot orientation</b></td></tr>
+    <tr> <td>    
     <canvas tabindex='1' id="leftfootcanvas" width="512" height="240"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
-    </canvas>    
+    </canvas>    </td>
+    <td>
     <canvas tabindex='1' id="rightfootcanvas" width="512" height="240"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
     </canvas><br/>
+    </td></tr></table>
     <div id="rightlightdir"></div>
     
-    <table hidden="1"><tr><td><b>Left Foot Accelerometer</b></td><td><b>Right Foot Accelerometer</b></td></tr>
+    <table><tr><td><b>Left Foot Accelerometer</b></td><td><b>Right Foot Accelerometer</b></td></tr>
     <tr><td><canvas id="left_accelerometer" width="512" height="240"></canvas></td><td><canvas id="right_accelerometer" width="512" height="240"></canvas></td></tr>
     <tr><td><b>Left Foot Gyroscope</b></td><td><b>Right Foot Gyroscope</b></td></tr>
     <tr><td><canvas id="left_gyro" width="512" height="240"></canvas></td><td><canvas id="right_gyro" width="512" height="240"></canvas></td></tr>
