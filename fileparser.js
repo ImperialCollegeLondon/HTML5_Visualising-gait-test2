@@ -15,19 +15,24 @@ function prepareFile(pdata){ //parase the file into an array of strings (of each
         linearray.push(curlinearray[i]);    
     parseSensorData();
     fileready=1;  
-    xinc=31.0/trackend_time[0];    
+    //xinc=31.0/trackend_time[0];    
     deginc=90.0/trackend_time[0];
     if (leftheel_strike_time[0][0] < rightheel_strike_time[0][0])
     {      
       left_heel_strike=true;
       left_pelvis_angle=35;
-      left_knee_angle=130;
-      left_ankle_angle=-30;
+      stick_left_knee_angle=130;
+      stick_left_ankle_angle=-30;
       right_pelvis_angle=-20;
-      right_knee_angle=50;
-      right_ankle_angle=-90;
+      stick_right_knee_angle=50;
+      stick_right_ankle_angle=-90;
      // curleftstep=1;
     }
+    counter=0;
+        animation_gait_cycle_time=(trackend_time[0]-trackstart_time[0])/(Math.max(no_left_steps[0],no_right_steps[0]));
+        animation_gait_cycle_inc=60/animation_gait_cycle_time;
+        //console.log(animation_gait_cycle_time+","+animation_gait_cycle_inc);
+        xinc=20.0/Math.max(no_left_steps[0],no_right_steps[0]);
       pelvis_inc=55/heel_strike_time[0][0];
       knee_inc=80/heel_strike_time[0][0];
       ankle_inc=60/heel_strike_time[0][0]
