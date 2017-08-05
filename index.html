@@ -108,6 +108,7 @@
   <body onload="drawtopbanner()" style="background-color:#000;font-family:Arial;color:#ffffff" >
   <canvas id='topbannercanvas' height="60"></canvas>   <br/><br/>
   <h2>Gait Visualisation</h2>
+  <b>by Benny Lo and Yingnan Sun</b><br/><p style="font-size:smaller">{benny.lo,y.sun16}@imperial.ac.uk</p>
   <hr/>
   <div id="fileselect">
   You can choose a subject data files (All data is provided by the FAU), <br/>then click start, and real-time visualisation will be shown on the web browser<br/><br/>
@@ -129,9 +130,32 @@
   <p>Documentation: <a href="./Abstract.pdf">Download Abstract</a><br/>
   Sensor signal pattern recogition: <a href="./Code.zip">Download MatLab source code</a></p>
   <h3>Visualisation</h3>
-  <p>The gait visualisation is programmed via HTML 5 with WebGL. <br>
-  The data is preprocessed using Matlab and results are saved into CSV files.<br/>
-  The 3D models are adapted from open sources 3D models and animations and simulations are all progammed using Java Script<br/>The source code can be directly downloaded from the web site (via view source option on your browser).</p>
+  <p><b>Design:</b>The gait visualisation is programmed via HTML 5 with WebGL. <br>
+  <b>Gait parameters:</b>The data is preprocessed using Matlab and results are saved into CSV files.<br/>
+  <b>3D models:</b>The 3D models are adapted from open sources 3D models and animations and simulations are all progammed using Java Script<br/>
+  <b>Source code:</b>The source code can be directly downloaded from the web site (via view source option on your browser).</p>
+  <p>Following assumptions were used in building the 3D model for visualisation:</p>
+  <ul><li>The walking distance is 10 meters</li>
+  <li>Healthy subjects with normal gaits are collected in the dataset</li>
+  <li>The subjects are of similar heights</li>
+  <li>The subjects have roughly equal strike length</li>
+  <li>The subjects arms are swinging at the same frequency as per the gait cycle</li>
+  </ul>
+  <h3>Skeleton Model</h3>
+  <p>The skeleton is an articulated 3D model and almost all joint angles can be rotated/controlled (except the wrists, where wrists rotation was not implemented)</p>
+  <table><tr valign="top"><td>
+  <ul><li>
+  Each joint segment is separately extracted from a 3D skeleton model and built in the Web GL environment</li><li>Joint segments are normalised first before scaling to fit the Web GL environment</li>
+  <li>The skeleton model is charactertised by its joint segment length/width and joint location</li><li>The joint segment length (e.g. upper leg length) can be adjusted individually (via modifying the specific parameters)</li><li>
+  Each joint segment is rotated (around it's mid-point) and translated to be positioned at the respective joint locaiton</li>
+  </ul>
+  </td><td>
+   <img src='images/skeleton1.jpg' alt="skeleton" height=200px/></td></tr></table>
+   <h3>Simulation</h3>
+   <p>The walking gait is simulated based on the timing (heel strikes, toe off, etc. timing) and gait parameters(foot angle, displacement etc) extracted from the raw sensor signals. <br/>
+   Each of the different phases within gait cycle was programmed (i.e. heel strike, mid-stance, toe off, etc.) and simulated (based on the timing and displacement information)<br/>
+   As it is too small to see the ankle and shoe angular rotations, 2 separate windows are designed to provide a zoomed in view to show the 3D rotations of the foots. A 3D shoe model was developed to illustrate the foot angular rotations.</p>
+   <iframe src="./skeleton_model.html" height=480px width=1024px></iframe>
     </div>
   <div id="allcanvas" hidden="1">
   <div id="showfilename" style="font-size:10px;font-family:Arial"></div>
