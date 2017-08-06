@@ -106,6 +106,8 @@ var animation_step=0;
 var upperbodyangle=0;
 var waist_x=0;
 var upperbodyposy=0;
+var right_leg_first=false;
+var walking_direction=1;
 //------------------------
 // start - initialise the buffer and GL
 function start() {
@@ -144,7 +146,7 @@ function resetAnimationTimer(){
     animation_timer=null;
   }  
   setAnimatinonTimer();}
-var walking_direction=1;
+
 function OnAnimationTimer() { 
   if (animation_step<70)
   {
@@ -153,100 +155,248 @@ function OnAnimationTimer() {
     {
       case 0:upperbodyangle=0;break;//bend forward
       case 1:case 2:case 3: case 4: case 5://raising the right knee      
-      right_hip_angle-=5;
       upperbodyposy-=0.02;
       waist_x+=(walking_direction*0.1);
-      right_knee_angle+=10;
       upperbodyangle+=0.5;
-      left_upper_arm_angle-=1;
-      right_upper_arm_angle+=1;
+      if (right_leg_first)
+      {
+        right_hip_angle-=5;
+        right_knee_angle+=10;
+        left_upper_arm_angle-=1;
+        right_upper_arm_angle+=1;      
+      }
+      else {
+        left_hip_angle-=5;
+        left_knee_angle+=10;
+        right_upper_arm_angle-=1;
+        left_upper_arm_angle+=1;      
+      }
       break;
       case 6:case 7:case 8: case 9: case 10:
-      right_knee_angle-=10;
-      left_hip_angle+=2;
-      left_knee_angle+=2;
-       left_upper_arm_angle-=1;
-      right_upper_arm_angle+=1;
+      if (right_leg_first)
+      {
+        right_knee_angle-=10;
+        left_hip_angle+=2;
+        left_knee_angle+=2;
+        left_upper_arm_angle-=1;
+        right_upper_arm_angle+=1;
+      }
+      else {
+        left_knee_angle-=10;
+        right_hip_angle+=2;
+        right_knee_angle+=2;
+        right_upper_arm_angle-=1;
+        left_upper_arm_angle+=1;
+      }
       //console.log("right heel strike");
       break;//continue raising the lower leg -> right heel strike
       case 11:case 12:case 13:case 14: case 15:
       waist_x+=(walking_direction*0.1);
-      left_hip_angle+=2;//leanng forward (bend the left leg)
-       left_upper_arm_angle-=1;
-      right_upper_arm_angle+=1;
+      if (right_leg_first)
+      {
+        left_hip_angle+=2;//leanng forward (bend the left leg)
+        left_upper_arm_angle-=1;
+        right_upper_arm_angle+=1;
+      }
+      else {
+        right_hip_angle+=2;//leanng forward (bend the left leg)
+        right_upper_arm_angle-=1;
+        left_upper_arm_angle+=1;        
+      }
       break;
       case 16:case 17:case 18:case 19: case 20://right foot flat
-      right_hip_angle+=5;
-      left_knee_angle+=5;
       upperbodyposy+=0.02;
-      left_upper_arm_angle+=1;
-      right_upper_arm_angle-=1;
+      if (right_leg_first)
+      {
+        right_hip_angle+=5;
+        left_knee_angle+=5;
+        left_upper_arm_angle+=1;
+        right_upper_arm_angle-=1;
+      }
+      else {
+        left_hip_angle+=5;
+        right_knee_angle+=5;
+        right_upper_arm_angle+=1;
+        left_upper_arm_angle-=1; 
         //console.log("right foot flat");
+      }
       break;
       case 21:case 22:case 23:case 24:case 25://mid stance
-      left_hip_angle-=2;
-      left_knee_angle-=2;      
       upperbodyangle-=0.5;   
-      left_upper_arm_angle+=1;
-      right_upper_arm_angle-=1;
+      if (right_leg_first)
+      {
+        left_hip_angle-=2;
+        left_knee_angle-=2;      
+        left_upper_arm_angle+=1;
+        right_upper_arm_angle-=1;
+      }
+      else {
+        right_hip_angle-=2;
+        right_knee_angle-=2;      
+        right_upper_arm_angle+=1;
+        left_upper_arm_angle-=1;
+      }
      // console.log("mid stance");
       break;
       case 26:case 27:case 28:case 29:case 30://standing positinon
-      left_hip_angle-=2;
-      left_knee_angle-=5;     
-      left_upper_arm_angle+=1;
-      right_upper_arm_angle-=1;          
+      if (right_leg_first)
+      {
+        //left_hip_angle-=2;
+        //left_knee_angle-=5;     
+        left_hip_angle-=5;
+        left_knee_angle+=3;     
+        left_upper_arm_angle+=1;
+        right_upper_arm_angle-=1;          
+      }
+      else {
+        //right_hip_angle-=2;
+        //right_knee_angle-=5;     
+        right_hip_angle-=5;
+        right_knee_angle+=3;     
+        right_upper_arm_angle+=1;
+        left_upper_arm_angle-=1;  
+      }
       break;
       case 31:case 32:case 33: case 34:case 35://contunue swing the left leg
-      left_hip_angle-=5;
-      left_knee_angle+=10;
       upperbodyposy-=0.02;
       upperbodyangle+=0.5;
-      left_upper_arm_angle+=1;
-      right_upper_arm_angle-=1; 
+      if (right_leg_first)
+      {
+        //left_hip_angle-=5;
+        left_hip_angle-=2;
+        left_knee_angle+=2;
+        //left_knee_angle+=10;
+        left_upper_arm_angle+=1;
+        right_upper_arm_angle-=1; 
+      }
+      else {
+        //right_hip_angle-=5;
+        //right_knee_angle+=10;
+        right_hip_angle-=2;
+        right_knee_angle+=2;
+        right_upper_arm_angle+=1;
+        left_upper_arm_angle-=1; 
+      }
       break;
       case 36:case 37:case 38:case 39:case 40://right heel off
-      left_knee_angle-=10;
-      right_hip_angle+=2;
-      right_knee_angle+=2;
-      left_upper_arm_angle+=1;
-      right_upper_arm_angle-=1; 
+      if (right_leg_first)
+      {
+        left_knee_angle-=10;
+        right_hip_angle+=2;
+        right_knee_angle+=2;
+        left_upper_arm_angle+=1;
+        right_upper_arm_angle-=1; 
+      }
+      else {
+        right_knee_angle-=10;
+        left_hip_angle+=2;
+        left_knee_angle+=2;
+        right_upper_arm_angle+=1;
+        left_upper_arm_angle-=1; 
+      }
       break;
       case 41:case 42:case 43:case 44: case 45://right toe off
       waist_x+=(walking_direction*0.1);
-      right_hip_angle+=2;//leanng forward (bend the right leg)
-      left_upper_arm_angle+=1;
-      right_upper_arm_angle-=1; 
+      if (right_leg_first)
+      {
+        right_hip_angle+=2;//leanng forward (bend the right leg)
+        left_upper_arm_angle+=1;
+        right_upper_arm_angle-=1; 
+      }
+      else {
+        left_hip_angle+=2;//leanng forward (bend the right leg)
+        right_upper_arm_angle+=1;
+        left_upper_arm_angle-=1; 
+      }
       break;
       case 46:case 47:case 48:case 49: case 50://left foot flat
-      left_hip_angle+=5;
-      right_knee_angle+=5;
       upperbodyposy+=0.02;    
-      left_upper_arm_angle-=1;
-      right_upper_arm_angle+=1;   
+      if (right_leg_first)
+      {
+        left_hip_angle+=5;
+        right_knee_angle+=5;
+        left_upper_arm_angle-=1;
+        right_upper_arm_angle+=1;   
+      }
+      else {
+        right_hip_angle+=5;
+        left_knee_angle+=5;
+        right_upper_arm_angle-=1;
+        left_upper_arm_angle+=1;   
+      }
       break;
-       case 51:case 52:case 53:case 54:case 55://mid stance
-      right_hip_angle-=2;
-      right_knee_angle-=2;      
+      case 51:case 52:case 53:case 54:case 55://mid stance
       upperbodyangle-=0.5;   
-      left_upper_arm_angle-=1;
-      right_upper_arm_angle+=1;   
+      if (right_leg_first)
+      {
+        right_hip_angle-=2;
+        right_knee_angle-=2;      
+        left_upper_arm_angle-=1;
+        right_upper_arm_angle+=1;   
+      }
+      else {
+        left_hip_angle-=2;
+        left_knee_angle-=2;      
+        right_upper_arm_angle-=1;
+        left_upper_arm_angle+=1;   
+      }
       break;
       case 56:case 57:case 58:case 59:case 60://standing positinon
-      right_hip_angle-=2;
-      right_knee_angle-=5;        
-      left_upper_arm_angle-=1;
-      right_upper_arm_angle+=1;     
+      if (right_leg_first)
+      {
+        //right_hip_angle-=2;
+        //right_knee_angle-=5;        
+        right_hip_angle-=5;
+        right_knee_angle+=3;        
+        left_upper_arm_angle-=1;
+        right_upper_arm_angle+=1;     
+      }
+      else {
+        //left_hip_angle-=2;
+        //left_knee_angle-=5;        
+        left_hip_angle-=5;
+        left_knee_angle+=3;        
+        right_upper_arm_angle-=1;
+        left_upper_arm_angle+=1;    
+      }
       break;
-      default: 
+      case 61:case 62:case 63:case 64: case 65:
+      upperbodyposy-=0.02;
+      upperbodyangle+=0.5;
+      waist_x+=0.05;
+      if (right_leg_first)
+      {
+        //right_hip_angle-=5;
+        right_hip_angle-=2;
+        //right_knee_angle+=10;
+        right_knee_angle+=2;
+        left_upper_arm_angle-=1;
+        right_upper_arm_angle+=1;
+      }
+      else {
+      //left_hip_angle-=5;
+        left_hip_angle-=2;
+        //left_knee_angle+=10;
+        left_knee_angle+=2;
+        right_upper_arm_angle-=1;
+        left_upper_arm_angle+=1;
+      }
+      break;
+      /*default: 
       if (walking_direction)
       {
         if (waist_x>14)
           waist_x=0;
       //  walking_direction=-1;
       }
-
-      animation_step=-1;break;  
+      animation_step=-1;break; */ 
+      default: upperbodyposy=0;
+        if (walking_direction)
+        {
+          if (waist_x>14)
+           waist_x=0;
+        }
+        animation_step=5;break;  
       
     }
     drawScene();

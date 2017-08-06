@@ -26,8 +26,10 @@ function prepareFile(pdata){ //parase the file into an array of strings (of each
       right_pelvis_angle=-20;
       stick_right_knee_angle=50;
       stick_right_ankle_angle=-90;
+      right_leg_first=false;
      // curleftstep=1;
     }
+    else right_leg_first=true;
     counter=0;
         animation_gait_cycle_time=(trackend_time[0]-trackstart_time[0])/(Math.max(no_left_steps[0],no_right_steps[0]));
         animation_gait_cycle_inc=60/animation_gait_cycle_time;
@@ -37,6 +39,7 @@ function prepareFile(pdata){ //parase the file into an array of strings (of each
       knee_inc=80/heel_strike_time[0][0];
       ankle_inc=60/heel_strike_time[0][0]
       shoulder_inc=60/heel_strike_time[0][0];
+   // console.log("right_leg_first"+right_leg_first);
       //currightstep=1;
     curstep++;
   //  console.log("cur leftstep:"+curleftstep+" cur rightstep:"+currightstep);

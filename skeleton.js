@@ -687,7 +687,7 @@ function drawSkeleton(pgl,pfigureposx,pfigureposy,pzoom_rate,pmodelRotationMatri
     drawBones(pgl,pfigureposx,pfigureposy,pzoom_rate,pmodelRotationMatrix,
         skeleton_mvMatrix,skeleton_pMatrix,pshaderProgram, 
   left_foot_VerticeBuffer,left_foot_NormalBuffer,left_foot_IndexBuffer,
-         (skeleton_hip_width-0.2),skeleton_thigh_y_offset+left_upperleg_y+left_lowerleg_y,left_upperleg_z+left_lowerleg_z,//position
+         (skeleton_hip_width-0.3),skeleton_thigh_y_offset+left_upperleg_y+left_lowerleg_y,left_upperleg_z+left_lowerleg_z,//position
             skeleton_foot_diameter,skeleton_foot_length,skeleton_foot_diameter,//scale
             pleft_lowleg_angle,0,0,//rotation
             1.0,1.0,1.0);//color)
@@ -707,7 +707,7 @@ function drawSkeleton(pgl,pfigureposx,pfigureposy,pzoom_rate,pmodelRotationMatri
      drawBones(pgl,pfigureposx,pfigureposy,pzoom_rate,pmodelRotationMatrix,
         skeleton_mvMatrix,skeleton_pMatrix,pshaderProgram, 
   right_foot_VerticeBuffer,right_foot_NormalBuffer,right_foot_IndexBuffer,
-         -(skeleton_hip_width-0.2),skeleton_thigh_y_offset+right_upperleg_y+right_lowerleg_y,right_upperleg_z+right_lowerleg_z,//position
+         -(skeleton_hip_width-0.1),skeleton_thigh_y_offset+right_upperleg_y+right_lowerleg_y-0.2,right_upperleg_z+right_lowerleg_z-0.1,//position
             skeleton_foot_diameter,skeleton_foot_length,skeleton_foot_diameter,//scale
             pright_lowleg_angle,0,0,//rotation
             1.0,1.0,1.0);//color)
