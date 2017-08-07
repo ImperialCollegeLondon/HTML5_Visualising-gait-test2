@@ -48,12 +48,9 @@ function left_foot_start() {
   left_foot_glcanvas.onmouseup=left_foot_handleMouseUp;
   document.onmousemove=left_foot_handleMouseMove;
   //setTimer();  
-  left_foot_drawScene();  
-}
-
+  left_foot_drawScene();  }
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-function left_foot_initBuffers()
-{//divide the sphere into triangles through dividing latitudes and longitude bands    
+function left_foot_initBuffers(){//divide the sphere into triangles through dividing latitudes and longitude bands    
     var cubevertices=[
       //front face  
       -1.0,-1.0,1.0,
@@ -167,11 +164,9 @@ function left_foot_initBuffers()
     left_foot_gl.bindBuffer(left_foot_gl.ARRAY_BUFFER,left_foot_axisNormalBuffer);
     left_foot_gl.bufferData(left_foot_gl.ARRAY_BUFFER,new Float32Array(arrowvertex),left_foot_gl.STATIC_DRAW);
     left_foot_axisNormalBuffer.itemSize=3;
-    left_foot_axisNormalBuffer.numItems=arrowvertex.length/3;
-}
+    left_foot_axisNormalBuffer.numItems=arrowvertex.length/3;}
 //=========================================
-function loadLeftShoe(filename)
-{//load the mac book JSON file
+function loadLeftShoe(filename){//load the mac book JSON file
   var request=new XMLHttpRequest();
   request.open("GET",filename);
   request.onreadystatechange=function(){
@@ -180,10 +175,8 @@ function loadLeftShoe(filename)
       handleLoadedLeftShoe(JSON.parse(request.responseText));//JSON parse and create the vertices of the laptop
     }
   }
-  request.send();
-}
-function handleLoadedLeftShoe(ShoeData)
-{   
+  request.send();}
+function handleLoadedLeftShoe(ShoeData){   
   left_shoe_verticeBuffer=left_foot_gl.createBuffer();  
   left_foot_gl.bindBuffer(left_foot_gl.ARRAY_BUFFER,left_shoe_verticeBuffer);  
   left_foot_gl.bufferData(left_foot_gl.ARRAY_BUFFER,new Float32Array(ShoeData.vertices),left_foot_gl.STATIC_DRAW);
@@ -209,17 +202,13 @@ function handleLoadedLeftShoe(ShoeData)
   }
   left_foot_gl.bufferData(left_foot_gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),left_foot_gl.STREAM_DRAW);  
   left_shoe_IndexBuffer.itemSize=1;
-  left_shoe_IndexBuffer.numItems=indices.length;  
-
-  
-}
+  left_shoe_IndexBuffer.numItems=indices.length;  }
 //--------------------------------------------------
 //mouse handling functions
 function left_foot_handleMouseDown(event) {
   left_foot_mouseDown=true;
   left_foot_lastMouseX=event.clientX;
-  left_foot_lastMouseY=event.clientY;
-}
+  left_foot_lastMouseY=event.clientY;}
 function left_foot_handleMouseUp(event){  left_foot_mouseDown=false;}
 function left_foot_handleMouseMove(event) {
   if (!left_foot_mouseDown)
@@ -239,22 +228,20 @@ function left_foot_handleMouseMove(event) {
 	left_foot_drawScene();
 	}
 //----------------------------------------
-function left_foot_sensor_rotate(anglex,angley,anglez)
-{
+function left_foot_sensor_rotate(anglex,angley,anglez){
 
-  	mat4.identity(left_foot_SensorRotationMatrix,left_foot_SensorRotationMatrix);
-  	mat4.rotate(left_foot_SensorRotationMatrix,left_foot_SensorRotationMatrix,degToRad(angley),[0,1,0]);  	
-  	mat4.rotate(left_foot_SensorRotationMatrix,left_foot_SensorRotationMatrix,degToRad(anglex),[1,0,0]);
-  	mat4.rotate(left_foot_SensorRotationMatrix,left_foot_SensorRotationMatrix,degToRad(anglez),[0,0,1]);  	  	
-	left_foot_drawScene();
-}
+  mat4.identity(left_foot_SensorRotationMatrix,left_foot_SensorRotationMatrix);
+  mat4.rotate(left_foot_SensorRotationMatrix,left_foot_SensorRotationMatrix,degToRad(angley),[0,1,0]);  	
+  mat4.rotate(left_foot_SensorRotationMatrix,left_foot_SensorRotationMatrix,degToRad(anglex),[1,0,0]);
+  mat4.rotate(left_foot_SensorRotationMatrix,left_foot_SensorRotationMatrix,degToRad(anglez),[0,0,1]);  	  	
+	left_foot_drawScene();}
 //--------------------------------------------
 // drawScene
 function left_foot_drawScene() {  
   // Clear the canvas before we start drawing on it.
   left_foot_gl.viewport(0,0,left_foot_gl.viewportWidth,left_foot_gl.viewportHeight);
   left_foot_gl.clear(left_foot_gl.COLOR_BUFFER_BIT | left_foot_gl.DEPTH_BUFFER_BIT);  
-//setting up the perspective to view the sceene
+  //setting up the perspective to view the sceene
   mat4.perspective(left_foot_pMatrix,45,left_foot_gl.viewportWidth/left_foot_gl.viewportHeight,0.1,100.0);  //set the projection martix  
   
   mat4.identity(left_foot_mvMatrix,left_foot_mvMatrix);//start with an identity matrix first    
@@ -410,10 +397,7 @@ function left_foot_drawScene() {
     left_foot_gl.drawElements(left_foot_gl.TRIANGLES,left_foot_SensorIndexBuffer.numItems,left_foot_gl.UNSIGNED_SHORT,0);
     //---------------------------
     left_foot_mvPopMatrix();
-  }
-  
-  
-}
+  }}
 // initShaders - Initialize the shaders, so WebGL knows how to light our scene.
 function left_foot_initShaders() {
   left_foot_shaderProgram=loadShaders(left_foot_gl, "shader-fs","shader-vs",true);  
