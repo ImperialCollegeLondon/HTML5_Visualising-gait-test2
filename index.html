@@ -13,7 +13,9 @@
     <script type="text/javascript" src="cylinder.js"></script>
     <script type="text/javascript" src="skeleton.js"></script>
     <script type="text/javascript" src="fileparser.js"></script>
-    <script type="text/javascript" src="StickFigure.js"></script>
+    <script type="text/javascript" src="StickFigure.js"></script>    
+    <script type="text/javascript" src="stlreader.js"></script>
+    <script type="text/javascript" src="objreader.js"></script>
     <!-- Fragment shader program -->
     <script id="shader-fs" type="x-shader/x-fragment">    
       precision mediump float;//define the precision of float
@@ -90,6 +92,16 @@
     }
     </style>
     <script type="text/javascript">
+      function playbackslower()
+      {
+        if (playbackspeed<50)
+          playbackspeed++;
+      }
+      function playbackfaster()
+      {
+        if (playbackspeed>1)
+          playbackspeed--;
+      }
     function StartVisualisation()
     {
       start();draw();
@@ -98,7 +110,9 @@
       var doc=document.getElementById("documentation");
       doc.innerHTML="";
       var fileselect=document.getElementById("fileselect");
-      fileselect.innerHTML="";
+      fileselect.innerHTML="Play back speed: <input type='button' value='slower' onClick='playbackslower()'><input type='button' value='faster' onClick='playbackfaster()'>";
+      var nameemail=document.getElementById("nameemail");
+      nameemail.innerHTML="";
       var showcanvas=document.getElementById("allcanvas");
       showcanvas.hidden=0;      
     }
@@ -108,7 +122,8 @@
   <body onload="drawtopbanner()" style="background-color:#000;font-family:Arial;color:#ffffff" >
   <canvas id='topbannercanvas' height="60"></canvas>   <br/><br/>
   <h2>Gait Visualisation</h2>
-  <b>by Benny Lo and Yingnan Sun</b><br/><p style="font-size:smaller">{benny.lo,y.sun16}@imperial.ac.uk</p>
+  <div id="nameemail">
+  <b>by Benny Lo and Yingnan Sun</b><br/><p style="font-size:smaller">{benny.lo,y.sun16}@imperial.ac.uk</p></div>
   <hr/>
   <div id="fileselect">
   You can choose a subject data files (All data is provided by the FAU), <br/>then click start, and real-time visualisation will be shown on the web browser<br/><br/>
@@ -162,7 +177,7 @@
     <canvas id="glcanvas" tabindex='1' width="1024" height="480"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
     </canvas><br/>
-    <table><tr><td><b>Left foot orientation</b></td>  <td><b>Right foot orientation</b></td></tr>
+    <table hidden="1"><tr><td><b>Left foot orientation</b></td>  <td><b>Right foot orientation</b></td></tr>
     <tr> <td>    
     <canvas tabindex='1' id="leftfootcanvas" width="512" height="240"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
@@ -174,7 +189,7 @@
     </td></tr></table>
     <div id="rightlightdir"></div>
     
-    <table><tr><td><b>Left Foot Accelerometer</b></td><td><b>Right Foot Accelerometer</b></td></tr>
+    <table ><tr><td><b>Left Foot Accelerometer</b></td><td><b>Right Foot Accelerometer</b></td></tr>
     <tr><td><canvas id="left_accelerometer" width="512" height="240"></canvas></td><td><canvas id="right_accelerometer" width="512" height="240"></canvas></td></tr>
     <tr><td><b>Left Foot Gyroscope</b></td><td><b>Right Foot Gyroscope</b></td></tr>
     <tr><td><canvas id="left_gyro" width="512" height="240"></canvas></td><td><canvas id="right_gyro" width="512" height="240"></canvas></td></tr>
@@ -189,17 +204,17 @@
     </div>
      <h2  hidden="1">Point light</h2>
     <table  hidden="1">
-    <tr><td><b>Location</b></td><td>X:<input type="text" id="lightDirectionX" value="12.0"/></td><td>Y:<input type="text" id="lightDirectionY" value="-12.0"/></td>
-    <td>Z:<input type="text" id="lightDirectionZ" value="-25.0"/></td></tr>
-    <tr><td><b>Color</b></td> <td>R:<input type="text" id="directionalR" value="0.5"/></td>
-    <td>G:<input type="text" id="directionalG" value="0.5"/></td>
-    <td>B:<input type="text" id="directionalB" value="0.5"/></td></tr>
+    <tr><td><b>Location</b></td><td>X:<input type="text" id="lightDirectionX" value="-12.0"/></td><td>Y:<input type="text" id="lightDirectionY" value="2.0"/></td>
+    <td>Z:<input type="text" id="lightDirectionZ" value="2.0"/></td></tr>
+    <tr><td><b>Color</b></td> <td>R:<input type="text" id="directionalR" value="0.2"/></td>
+    <td>G:<input type="text" id="directionalG" value="0.2"/></td>
+    <td>B:<input type="text" id="directionalB" value="0.2"/></td></tr>
     </table>
-    <h2  hidden="1">Ambient Light</h2>
+    <h2 hidden="1" >Ambient Light</h2>
     <table hidden="1">
-    <tr><td><b>Color</b></td><td>R: <input type="text" id="ambientR" value="0.4"/></td>
-    <td>G: <input type="text" id="ambientG" value="0.4"/></td>
-    <td>B: <input type="text" id="ambientB" value="0.4"/></td>
+    <tr><td><b>Color</b></td><td>R: <input type="text" id="ambientR" value="0.2"/></td>
+    <td>G: <input type="text" id="ambientG" value="0.2"/></td>
+    <td>B: <input type="text" id="ambientB" value="0.2"/></td>
     </tr></table>
     <br/><br/>
     <hr /><br /><br /><br /><br />

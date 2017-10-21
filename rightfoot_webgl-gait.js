@@ -48,8 +48,8 @@ function right_foot_start() {
   mat4.identity(right_foot_SensorRotationMatrix,right_foot_SensorRotationMatrix);  
   right_foot_initShaders(); //initialise the shaders     
   right_foot_initBuffers();    
-  //loadRightShoe("./3D models/right_shoe_1.json");
-  loadRightShoe("./3D models/left_shoe_1.json");
+  //loadRightShoe("./3D models/left_shoe_1.json");
+  loadSTLFile("./3D models/left_shoe.stl",rightshoe_readOBJ_finish);  
   right_foot_gl.clearColor(0.0,0.0,0.0,1.0);//clear the canvas
   right_foot_gl.enable(right_foot_gl.DEPTH_TEST);  //enable depth test -> d
   right_foot_glcanvas.onmousedown=right_foot_handleMouseDown;
@@ -63,6 +63,96 @@ function right_foot_start() {
   //setTimer();    
   right_foot_drawScene();  
 }
+//--------------------------------------------------------------
+function createEmptyTexture(verticelength)
+{
+  var texture=[];
+  var px=0;
+  var py=0;
+  var whichtexture=0;
+  var incx=1.0/(verticelength/3);
+  for (var i=0;i<verticelength/3;i++)
+  {
+    texture.push(px);
+    texture.push(py);
+    texture.push(whichtexture);
+    px+=incx;
+    py+=incx;
+  }
+  return texture;
+}
+
+function rightshoe_readOBJ_finish(nobuffers,vertices,normals,indices,texture,materials,midx,midy,midz,maxrange) {//call back function for handling the OBJ file finishing event
+  //nobuffers-> no of buffers needed, as indices can only be 16 bit... 65536
+  //vertrices -> vertices read from the obj file
+  //normals -> normal read from the obj file
+  //indices -> indices of the object - read from the obj file
+  //texture -> texture coordinates
+  //materials -> name of material used in each vertice
+  //midx,midy,midz -> mid point x,y,z
+  //maxrange -> the longest axis size
+  var obj3D_gl=right_foot_gl;
+  var obj3D_noBuffers=nobuffers;
+  var obj3D_vertices=[];
+  var obj3D_normals=[];
+  var obj3D_indices=[];
+  var obj3D_texturecoord=[];
+  var obj3D_materialNames=[];
+  for (var i=0;i<obj3D_noBuffers;i++)
+  {
+    obj3D_vertices.push(vertices[i]);
+    obj3D_normals.push(normals[i]);
+    obj3D_indices.push(indices[i]);
+    obj3D_materialNames.push(materials[i]);
+    if (texture==undefined ||texture[i]==undefined||texture.length<=0||texture[i].length<=0)
+        obj3D_texturecoord.push(createEmptyTexture(vertices[i].length));  
+    else obj3D_texturecoord.push(texture[i]);        
+  }
+  var obj3D_vertices_midx=midx;
+  var obj3D_vertices_midy=midy;
+  var obj3D_vertices_midz=midz;
+  var obj3D_vertices_maxrange=maxrange;
+
+  var obj3D_verticeBuffer=[];
+  var obj3D_NormalBuffer=[];
+  var obj3D_IndexBuffer=[];
+  var obj3D_TextureCoordBuffer=[];
+  
+  for (var i=0;i<obj3D_noBuffers;i++)
+  {
+    obj3D_verticeBuffer[i]=obj3D_gl.createBuffer();  
+    obj3D_gl.bindBuffer(obj3D_gl.ARRAY_BUFFER,obj3D_verticeBuffer[i]);  
+    obj3D_gl.bufferData(obj3D_gl.ARRAY_BUFFER,new Float32Array(obj3D_vertices[i]),obj3D_gl.STATIC_DRAW);
+    obj3D_verticeBuffer[i].itemSize=3;  
+    obj3D_verticeBuffer[i].numItems=obj3D_vertices[i].length/3;
+
+    obj3D_NormalBuffer[i]=obj3D_gl.createBuffer();  
+    obj3D_gl.bindBuffer(obj3D_gl.ARRAY_BUFFER,obj3D_NormalBuffer[i]);  
+    obj3D_gl.bufferData(obj3D_gl.ARRAY_BUFFER,new Float32Array(obj3D_normals[i]),obj3D_gl.STATIC_DRAW);
+    obj3D_NormalBuffer[i].itemSize=3;  
+    obj3D_NormalBuffer[i].numItems=obj3D_normals[i].length/3;
+
+    if (obj3D_indices[i].length>0)
+    {
+      obj3D_IndexBuffer[i]=obj3D_gl.createBuffer();
+      obj3D_gl.bindBuffer(obj3D_gl.ELEMENT_ARRAY_BUFFER,obj3D_IndexBuffer[i]);
+      obj3D_gl.bufferData(obj3D_gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(obj3D_indices[i]),obj3D_gl.STREAM_DRAW);  
+      obj3D_IndexBuffer[i].itemSize=1;
+      obj3D_IndexBuffer[i].numItems=obj3D_indices[i].length; 
+    }
+    obj3D_TextureCoordBuffer[i]=obj3D_gl.createBuffer();
+    obj3D_gl.bindBuffer(obj3D_gl.ARRAY_BUFFER,obj3D_TextureCoordBuffer[i]);
+    obj3D_gl.bufferData(obj3D_gl.ARRAY_BUFFER,new Float32Array(obj3D_texturecoord[i]),obj3D_gl.STATIC_DRAW);
+    //obj3D_TextureCoordBuffer[i].itemSize=2;
+    obj3D_TextureCoordBuffer[i].itemSize=3;
+    obj3D_TextureCoordBuffer[i].numItems=obj3D_texturecoord[i].length/3;    
+    
+  }   
+    right_shoe_verticeBuffer   =obj3D_verticeBuffer[0];
+    right_shoe_IndexBuffer=obj3D_IndexBuffer[0];
+    right_shoe_NormalBuffer=obj3D_NormalBuffer[0];
+    right_shoe_TextureCoordBuffer=obj3D_TextureCoordBuffer[0];    
+  }
 
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 function right_foot_initBuffers(){//divide the sphere into triangles through dividing latitudes and longitude bands    
@@ -432,7 +522,8 @@ function right_foot_drawScene() {
     mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[1,-1,-4]);//rotate to the tilt angle        
     right_foot_gl.useProgram(right_foot_shaderProgram);        
     right_foot_gl.uniform3f(right_foot_shaderProgram.ambientColorUniform,
-     0.3,0.3,0.3);      
+     //0.3,0.3,0.3);      
+     0.5,0.5,0.5);      
     var adjustedLD=vec3.create();//create a vector for the normalised direction
     //var lightingDirection=[0,-5,-4];    
     var lightingDirection=[-22,-21,-16];    
@@ -464,9 +555,12 @@ function right_foot_drawScene() {
     //---------------------------
     //draw the sensor cube
     right_foot_gl.uniform3f(right_foot_shaderProgram.ambientColorUniform, 0.8,0.8,0.8);      
-    mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.1,0.2,0.4]);
-    right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,0.5,0.6,1);
-    mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[5,7,-2.5]);//rotate to the tilt angle    
+    //mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.1,0.2,0.4]);
+    mat4.scale(right_foot_mvMatrix,right_foot_mvMatrix,[0.1,0.4,0.2]);
+    //right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,0.5,0.6,1);
+    right_foot_gl.uniform3f(right_foot_shaderProgram.lineColor,0.8,0.3,0.2);
+    //mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[5,7,-2.5]);//rotate to the tilt angle    
+    mat4.translate(right_foot_mvMatrix,right_foot_mvMatrix,[5,4,-6]);//rotate to the tilt angle    
     right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorPositionBuffer);  
     right_foot_gl.vertexAttribPointer(right_foot_shaderProgram.vertexPositionAttribute,right_foot_SensorPositionBuffer.itemSize,right_foot_gl.FLOAT,false,0,0);
     right_foot_gl.bindBuffer(right_foot_gl.ARRAY_BUFFER,right_foot_SensorNormalBuffer);

@@ -7,8 +7,8 @@ function drawTextonBanner(ctx,text,posx,posy,font,color,size,stroke)
     //ctx.font = "20pt Arial";
     ctx.font=size+"pt "+font;
     ctx.strokeStyle=color;
-    if (stroke)
-        ctx.strokeText(text,posx,posy);
+    //if (stroke)
+      //  ctx.strokeText(text,posx,posy);
     ctx.fillText(text, posx, posy);     
 }
 function drawtopbanner()

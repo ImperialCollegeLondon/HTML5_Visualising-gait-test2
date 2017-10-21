@@ -7,6 +7,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 //skeleton vertice variables
+var skeleton_gl;
 	var skull_VerticeBuffer;
 	var skull_NormalBuffer;
 	var skull_IndexBuffer;
@@ -86,6 +87,7 @@ function init_Skeleton(pgl,pshoulder_width,pupper_arm_length,parm_diameter,puppe
         pthigh_y_offset,pthigh_length,pthigh_diameter,
         pshin_length,pshin_diameter,       
         pfoot_length,pfoot_diameter){
+  skeleton_gl=pgl;
   skeleton_shoulder_width=pshoulder_width;
   skeleton_upper_arm_length=pupper_arm_length;
   skeleton_arm_diameter=parm_diameter;
@@ -106,7 +108,8 @@ function init_Skeleton(pgl,pshoulder_width,pupper_arm_length,parm_diameter,puppe
   skeleton_shin_diameter=pshin_diameter;
   skeleton_foot_length=pfoot_length;
   skeleton_foot_diameter=pfoot_diameter;
-  loadBone(pgl,"./3D models/skull1.json","skull");
+  //loadBone(pgl,"./3D models/skull1.json","skull");
+  loadOBJFile("./3D models/skull.obj",skull_readOBJ_finish,obj3D_readMTL_finish);
   loadBone(pgl,"./3D models/neck1.json","neck");
   loadBone(pgl,"./3D models/torsoa.json","torso1");
   loadBone(pgl,"./3D models/torsob.json","torso2");
@@ -122,6 +125,99 @@ function init_Skeleton(pgl,pshoulder_width,pupper_arm_length,parm_diameter,puppe
   loadBone(pgl,"./3D models/right_lower_leg1.json","rightlowerleg");
   loadBone(pgl,"./3D models/left_foot1.json","leftfoot");
   loadBone(pgl,"./3D models/right_foot1.json","rightfoot");}
+  //--------------------------------------------------------------
+function createEmptyTexture(verticelength)
+{
+  var texture=[];
+  var px=0;
+  var py=0;
+  var whichtexture=0;
+  var incx=1.0/(verticelength/3);
+  for (var i=0;i<verticelength/3;i++)
+  {
+    texture.push(px);
+    texture.push(py);
+    texture.push(whichtexture);
+    px+=incx;
+    py+=incx;
+  }
+  return texture;
+}
+  function obj3D_readMTL_finish(materials)
+{}
+function skull_readOBJ_finish(nobuffers,vertices,normals,indices,texture,materials,midx,midy,midz,maxrange) {//call back function for handling the OBJ file finishing event
+  //nobuffers-> no of buffers needed, as indices can only be 16 bit... 65536
+  //vertrices -> vertices read from the obj file
+  //normals -> normal read from the obj file
+  //indices -> indices of the object - read from the obj file
+  //texture -> texture coordinates
+  //materials -> name of material used in each vertice
+  //midx,midy,midz -> mid point x,y,z
+  //maxrange -> the longest axis size
+  var obj3D_gl=skeleton_gl;
+  var obj3D_noBuffers=nobuffers;
+  var obj3D_vertices=[];
+  var obj3D_normals=[];
+  var obj3D_indices=[];
+  var obj3D_texturecoord=[];
+  var obj3D_materialNames=[];
+  for (var i=0;i<obj3D_noBuffers;i++)
+  {
+    obj3D_vertices.push(vertices[i]);
+    obj3D_normals.push(normals[i]);
+    obj3D_indices.push(indices[i]);
+    obj3D_materialNames.push(materials[i]);
+    if (texture==undefined ||texture[i]==undefined||texture.length<=0||texture[i].length<=0)
+        obj3D_texturecoord.push(createEmptyTexture(vertices[i].length));  
+    else obj3D_texturecoord.push(texture[i]);        
+  }
+  var obj3D_vertices_midx=midx;
+  var obj3D_vertices_midy=midy;
+  var obj3D_vertices_midz=midz;
+  var obj3D_vertices_maxrange=maxrange;
+
+  var obj3D_verticeBuffer=[];
+  var obj3D_NormalBuffer=[];
+  var obj3D_IndexBuffer=[];
+  var obj3D_TextureCoordBuffer=[];
+  
+  for (var i=0;i<obj3D_noBuffers;i++)
+  {
+    obj3D_verticeBuffer[i]=obj3D_gl.createBuffer();  
+    obj3D_gl.bindBuffer(obj3D_gl.ARRAY_BUFFER,obj3D_verticeBuffer[i]);  
+    obj3D_gl.bufferData(obj3D_gl.ARRAY_BUFFER,new Float32Array(obj3D_vertices[i]),obj3D_gl.STATIC_DRAW);
+    obj3D_verticeBuffer[i].itemSize=3;  
+    obj3D_verticeBuffer[i].numItems=obj3D_vertices[i].length/3;
+
+    obj3D_NormalBuffer[i]=obj3D_gl.createBuffer();  
+    obj3D_gl.bindBuffer(obj3D_gl.ARRAY_BUFFER,obj3D_NormalBuffer[i]);  
+    obj3D_gl.bufferData(obj3D_gl.ARRAY_BUFFER,new Float32Array(obj3D_normals[i]),obj3D_gl.STATIC_DRAW);
+    obj3D_NormalBuffer[i].itemSize=3;  
+    obj3D_NormalBuffer[i].numItems=obj3D_normals[i].length/3;
+
+    if (obj3D_indices[i].length>0)
+    {
+      obj3D_IndexBuffer[i]=obj3D_gl.createBuffer();
+      obj3D_gl.bindBuffer(obj3D_gl.ELEMENT_ARRAY_BUFFER,obj3D_IndexBuffer[i]);
+      obj3D_gl.bufferData(obj3D_gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(obj3D_indices[i]),obj3D_gl.STREAM_DRAW);  
+      obj3D_IndexBuffer[i].itemSize=1;
+      obj3D_IndexBuffer[i].numItems=obj3D_indices[i].length; 
+    }
+    obj3D_TextureCoordBuffer[i]=obj3D_gl.createBuffer();
+    obj3D_gl.bindBuffer(obj3D_gl.ARRAY_BUFFER,obj3D_TextureCoordBuffer[i]);
+    obj3D_gl.bufferData(obj3D_gl.ARRAY_BUFFER,new Float32Array(obj3D_texturecoord[i]),obj3D_gl.STATIC_DRAW);
+    //obj3D_TextureCoordBuffer[i].itemSize=2;
+    obj3D_TextureCoordBuffer[i].itemSize=3;
+    obj3D_TextureCoordBuffer[i].numItems=obj3D_texturecoord[i].length/3;    
+    
+  } 
+  skull_VerticeBuffer=obj3D_verticeBuffer[0];
+  skull_IndexBuffer=obj3D_IndexBuffer[0];
+  skull_NormalBuffer=obj3D_NormalBuffer[0];
+
+//    right_shoe_TextureCoordBuffer=obj3D_TextureCoordBuffer[0];    
+  }
+
 function loadBone(pgl,filename,whichobject){//load the mac book JSON file
   var request=new XMLHttpRequest();
   request.open("GET",filename);
@@ -427,8 +523,8 @@ function drawSkeleton(pgl,pfigureposx,pfigureposy,pzoom_rate,pmodelRotationMatri
             0,-1.8,0.5,//position
             0.15,0.15,0.15,//scale
             0,0,0,//rotation
-            //1,1,1);//color
-            0.5,0.5,0.5);//color
+            1,1,1);//color
+            //0.5,0.5,0.5);//color
   else drawCylinder(0,1,0,0.24,0.2,0.24,0,0,0,1.0,0.5,0.5);//(posx,posy,posz,scalex,scaley,scalez,rotatex,rotatey,rotatez,colorr,colorg,colorb)
   //neck
   if (neck_VerticeBuffer) drawBones(pgl,pfigureposx,pfigureposy,pzoom_rate,pmodelRotationMatrix,

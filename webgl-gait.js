@@ -193,6 +193,7 @@ var lineNormalBuffer;
   var right_knee_angle=yangle;;
   var left_ankle_angle=0;
   var right_ankle_angle=0;
+  var playbackspeed=5;
 //--------------
 //animation
 var animation_step=0;
@@ -250,7 +251,7 @@ function start() {
 
 function setTimer()
 {
-    timer=window.setTimeout(OnTimer,1);        
+    timer=window.setTimeout(OnTimer,playbackspeed);        
 }
 function resetTimer()
 {
@@ -1279,7 +1280,10 @@ function drawSkeletonScene() {
       parseFloat(document.getElementById("ambientR").value),
       parseFloat(document.getElementById("ambientG").value),
       parseFloat(document.getElementById("ambientB").value));
-  var lightingDirection=[2,2,2];
+  //var lightingDirection=[2,2,2];
+  var lightingDirection=[parseFloat(document.getElementById("lightDirectionX").value),
+          parseFloat(document.getElementById("lightDirectionY").value),
+          parseFloat(document.getElementById("lightDirectionZ").value)];
   var adjustedLD=vec3.create();//create a vector for the normalised direction
   vec3.normalize(adjustedLD,lightingDirection);  //normalise the lighting direction vector
   vec3.scale(adjustedLD,adjustedLD,-1);//scale by -1  
