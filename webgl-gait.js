@@ -141,17 +141,12 @@ var lineVertexBuffer;
 var lineNormalBuffer;
 //----------------
 //3D body model
-  var cylinder_shoulder_width=1;    
   var shoulder_width=1.35;  
   var shoulder_y=0.1;
   var shoulder_diameter=0.2;
-  var cylinder_arm_diameter=0.12;
   var arm_diameter=0.6;
   var lower_arm_diameter=0.3
-  var cone_offset=0.2;//counter for the burge out cone of the cylinders  
-  var cylinder_upper_arm_length=0.6;
   var upper_arm_length=1.5;
-  var cylinder_upper_arm_y=0;//-0.5
   var upper_arm_z_offset=0.5;
   var upper_arm_y_offset=0.25;
   var lower_arm_y_offset=0.3;
@@ -159,17 +154,14 @@ var lineNormalBuffer;
   var lower_arm_x_offset=0.3;
   var left_upper_arm_angle=10;
   var right_upper_arm_angle=10;
-  var cylinder_lower_arm_length=0.4
   var lower_arm_length=1.5
   var left_elbow_angle=-20;//yangle+90;
   var right_elbow_angle=-20;
   var hand_length=1;
   var hand_diameter=0.5;
   var thigh_y_offset=-2.2;
-  var cylinder_thigh_diameter=0.16;
   var thigh_diameter=0.5;
   var shin_diameter=thigh_diameter;
-  var cylinder_shin_diameter=cylinder_thigh_diameter;
   var waist_diameter=0.2;
   var waist_length=0.2;
   var waist_y=-1.8;
@@ -177,14 +169,10 @@ var lineNormalBuffer;
   var hip_diameter=0.3;
   var hip_width=0.7;
   var leg_offset=0.1;
-  var cylinder_thigh_length=0.7;
   var thigh_length=2.3;
-  var cylinder_shin_length=0.6;
   var shin_length=2;
   var shin_y=-2.2;
   var foot_y=0.1;
-  var cylinder_foot_diameter=0.2;
-  var cylinder_foot_length=0.3;
   var foot_diameter=0.8;
   var foot_length=1.2;
   var left_hip_angle=0;
@@ -235,13 +223,10 @@ function start() {
   glcanvas.onmouseup=handleMouseUp;
   document.onmousemove=handleMouseMove;
   var which_subject=document.getElementById("filechosen");
-  var filename="GA21604"+which_subject.value+"_result.csv";
+  var filename="./sensordata/GA21604"+which_subject.value+"_result.csv";
   //console.log(filename);
   var showfilename=document.getElementById("showfilename");
       showfilename.innerHTML="File:"+filename;
-  //loadDataFile("GA216042_result.csv");
-  //var filename="data_subject_3_with_angles.csv";
-  //var filename="GA216042_result.csv";
   loadDataFile(filename);
   setTimer();
   document.onkeydown=handleKeyDown;//handle key down events
@@ -252,6 +237,13 @@ function start() {
 function setTimer()
 {
     timer=window.setTimeout(OnTimer,playbackspeed);        
+}
+function stopTimer()
+{
+   if (timer)
+    {
+        window.clearTimeout(timer);   timer=null;  
+    }
 }
 function resetTimer()
 {
@@ -323,7 +315,6 @@ function OnTimer()
           curdeg=90;
           turn_inc=-180/(trackstart_time[curtrack]-trackend_time[curtrack-1]);
         }
-        //xinc=31.0/(trackend_time[curtrack]-trackstart_time[curtrack]);  
         deginc=90.0/(trackend_time[curtrack]-trackstart_time[curtrack]);  
         counter=0;
         xinc=20.0/Math.max(no_left_steps[curtrack],no_right_steps[curtrack]);
@@ -385,9 +376,6 @@ function OnTimer()
   else {
    // console.log("no turns:"+noturns);
   }
-  /*initialiseStickFigure(zpos,left_pelvis_angle,stick_left_knee_angle,stick_left_ankle_angle,
-        right_pelvis_angle,stick_right_knee_angle,stick_right_ankle_angle,left_shoulder_angle,right_shoulder_angle,
-        stick_left_elbow_angle,stick_right_elbow_angle);*/
   //drawScene();//draw the scene again    
   drawSkeletonScene();
   resetTimer();
@@ -399,197 +387,6 @@ function OnTimer()
     //console.log(counter);
     OnAnimationTimer();
   }
-  /*counter++;
-  //if (counter>=20)
-  {
-    counter=0;
-    
-    if (turning_left)
-    {
-      //curdeg-=deginc;
-      curdeg-=turn_inc;
-      if (curdeg<=135)
-      {
-        turning_left=false;
-        walking_foreward=true;  
-        if (leftheel_strike_time[curtrack] >rightheel_strike_time[curtrack])
-        {
-          left_pelvis_angle=-20;
-          right_pelvis_angle=35;
-          stick_left_knee_angle=50;
-          stick_right_knee_angle=130;
-          stick_left_ankle_angle=-90;
-          stick_right_ankle_angle=-90;
-          left_shoulder_angle=80;
-          right_shoulder_angle=40;
-          stick_left_elbow_angle=100;
-          stick_right_elbow_angle=80;
-          left_heel_strike=false;
-        }
-        else {
-          left_pelvis_angle=35;
-          right_pelvis_angle=-20;
-          stick_left_knee_angle=130;
-          stick_right_knee_angle=50;
-          stick_left_ankle_angle=-30;
-          stick_right_ankle_angle=-90;
-          left_shoulder_angle=140;
-          right_shoulder_angle=40;
-          stick_left_elbow_angle=56;
-          stick_right_elbow_angle=124;
-        }     
-      }
-    }
-    else if (walking_backward)
-    {      
-      if (figureposx>-15)
-      {
-        figureposx-=xinc;
-        curdeg+=deginc;
-      }
-      else if (figureposx<=-15)
-      {
-        turning_left=true;
-        walking_backward=false;
-      }
-    }
-    else if (turning_right)
-    {
-      //curdeg+=deginc;
-      curdeg+=turn_inc;
-      if (curdeg>=225)
-      {
-        turning_right=false;
-        walking_backward=true;  
-        if (leftheel_strike_time[curtrack] >rightheel_strike_time[curtrack])
-        {
-          left_pelvis_angle=-20;
-          right_pelvis_angle=35;
-          stick_left_knee_angle=50;
-          stick_right_knee_angle=130;
-          //stick_left_ankle_angle=-90;
-          //stick_right_ankle_angle=-90;
-          left_shoulder_angle=80;
-          right_shoulder_angle=40;
-          stick_left_elbow_angle=100;
-          stick_right_elbow_angle=80;
-          left_heel_strike=false;
-        }
-        else {
-          left_pelvis_angle=35;
-          right_pelvis_angle=-20;
-          stick_left_knee_angle=130;
-          stick_right_knee_angle=50;
-          //stick_left_ankle_angle=-30;
-          //stick_right_ankle_angle=-30;
-          left_shoulder_angle=140;
-          right_shoulder_angle=40;
-          stick_left_elbow_angle=56;
-          stick_right_elbow_angle=124;
-        }     
-      }
-
-    }
-    else if (walking_foreward)
-    {    
-      if (figureposx<15)// && !left_heel_strike)
-      {
-        //figureposx+=(xinc/10.0);
-        figureposx+=xinc;
-        curdeg-=(deginc);           
-      }
-      else if (figureposx>=15)
-      {
-        walking_foreward=false;
-        turning_right=1;
-      }      
-    }
-  }  
-  if (!left_heel_strike)
-  {
-    if (left_pelvis_angle<=35)
-        {
-          left_pelvis_angle+=pelvis_inc;        
-          if (right_pelvis_angle>-20)
-            right_pelvis_angle-=pelvis_inc;
-        }
-        if (stick_left_knee_angle<130)
-        {
-          stick_left_knee_angle+=knee_inc; 
-          if (stick_right_knee_angle>50)         
-            stick_right_knee_angle-=(knee_inc*2);
-        }
-        else {
-          left_heel_strike=true;
-          //-------
-          if (curstep<heel_strike_time[curtrack].length)
-          {
-              var timediff=heel_strike_time[curtrack][curstep]-heel_strike_time[curtrack][curstep-1];
-              pelvis_inc=55/timediff;
-              knee_inc=80/timediff;
-              ankle_inc=60/timediff;
-              shoulder_inc=60/timediff;
-              //console.log(timediff);
-             // console.log(knee_inc);
-              curleftstep++;
-              curstep++;
-            }
-        //---------
-        }
-        if (stick_left_ankle_angle>-30)
-        {
-          l//eft_ankle_angle+=ankle_inc;
-          //stick_right_ankle_angle-=ankle_inc;
-        }
-        if (left_shoulder_angle<140)        
-          left_shoulder_angle+=shoulder_inc;        
-        if (right_shoulder_angle>40)
-          right_shoulder_angle-=shoulder_inc;
-        
-        stick_right_elbow_angle+=elbow_inc;
-  }
-  else {
-
-    if (stick_right_knee_angle<130)
-    {
-      if (left_pelvis_angle>-20)
-      {
-        left_pelvis_angle-=pelvis_inc;
-        right_pelvis_angle+=pelvis_inc;
-      }
-      if (stick_left_knee_angle>50)
-        stick_left_knee_angle-=(knee_inc*2);               
-      stick_right_knee_angle+=(knee_inc);
-      if (stick_left_ankle_angle>-90) 
-      {
-       // stick_left_ankle_angle-=ankle_inc;
-        //stick_right_ankle_angle+=ankle_inc;
-      }
-      left_shoulder_angle-=(shoulder_inc);
-      if (right_shoulder_angle<140)
-        right_shoulder_angle+=shoulder_inc;
-      stick_right_elbow_angle-=elbow_inc;
-      if (stick_left_elbow_angle<120)
-        stick_left_elbow_angle+=elbow_inc;
-    }
-    else {
-      left_heel_strike=false;   
-      //-------
-      if (curstep<heel_strike_time[curtrack].length)
-      {
-        var timediff=heel_strike_time[curtrack][curstep]-heel_strike_time[curtrack][curstep-1];
-        pelvis_inc=55/timediff;
-        knee_inc=80/timediff;
-        ankle_inc=60/timediff;
-        shoulder_inc=60/timediff;
-       // console.log(timediff);
-        //console.log(knee_inc);
-        currightstep++;
-        curstep++;          
-      }
-        //---------       
-    }              
-  }*/  
 }
 
 function OnAnimationTimer() { 
@@ -861,14 +658,6 @@ function initBuffers(){//divide the sphere into triangles through dividing latit
     var radius=parseFloat(document.getElementById("radius").value);;//radius of the sphere
     var roundness=parseInt(document.getElementById("roundness").value);;
     var norows=parseFloat(document.getElementById("norows").value);
-    var pbuffers=initCylinderBuffer(radius,roundness,norows,gl);
-    CylinderVertexPositionBuffer=pbuffers[0];
-    CylinderVertexNormalBuffer=pbuffers[1];
-    CylinderVertexIndexBuffer=pbuffers[2];
-    //--------
-    /*initialiseStickFigure(zpos,left_pelvis_angle,stick_left_knee_angle,stick_left_ankle_angle,right_pelvis_angle,
-      stick_right_knee_angle,stick_right_ankle_angle,left_shoulder_angle,right_shoulder_angle,
-      stick_left_elbow_angle,stick_right_elbow_angle);*/
     //---------------------------
     var floorvertices=[
     -2,-0.4,-0.5,    
@@ -1103,7 +892,7 @@ function initWebGL(pcanvas) {
   // If we don't have a GL context, give up now
   if (!pgl) alert("Unable to initialize WebGL. Your browser may not support it.");      
   return pgl;}
-function drawCylinder(posx,posy,posz,scalex,scaley,scalez,rotatex,rotatey,rotatez,colorr,colorg,colorb){
+/*function drawCylinder(posx,posy,posz,scalex,scaley,scalez,rotatex,rotatey,rotatez,colorr,colorg,colorb){
   mvPushMatrix();  
   var newRotationMatrix=mat4.create();
   mat4.identity(newRotationMatrix,newRotationMatrix);
@@ -1123,7 +912,7 @@ function drawCylinder(posx,posy,posz,scalex,scaley,scalez,rotatex,rotatey,rotate
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,CylinderVertexIndexBuffer);
   setMatrixUniforms();
   gl.drawElements(gl.TRIANGLES,CylinderVertexIndexBuffer.numItems,gl.UNSIGNED_SHORT, 0);  
-  mvPopMatrix();}
+  mvPopMatrix();}*/
 function drawArrow(posx,posy,posz,scalex,scaley,scalez,rotatex,rotatey,rotatez,colorr,colorg,colorb){//draw an arrow
   gl.useProgram(no_light_shaderProgram);        
   mvPushMatrix();
@@ -1261,7 +1050,7 @@ function drawSkeletonScene() {
   //draw the floor first
   mvPushMatrix();
   mat4.translate(mvMatrix,mvMatrix,[0,-8,-25]);//rotate to the tilt angle 
-  gl.uniform3f(no_light_shaderProgram.lineColor,0.6,0.4,0.4);
+  gl.uniform3f(no_light_shaderProgram.lineColor,0.4,0.4,0.8);
   mat4.scale(mvMatrix,mvMatrix,[13,1,15]);  
   gl.bindBuffer(gl.ARRAY_BUFFER,dummyfloorNormalBuffer);
   gl.vertexAttribPointer(no_light_shaderProgram.vertexNormalAttribute,dummyfloorNormalBuffer.itemSize,gl.FLOAT,false,0,0);
@@ -1296,13 +1085,15 @@ function drawSkeletonScene() {
   gl.uniform3f(shaderProgram.lineColor,1.0,1.0,1.0);
   gl.uniform1i(shaderProgram.useLightingUniform,true);  
   //draw the 3D shapes using cylinders
-  var right_lower_arm_angle=180+right_elbow_angle+right_upper_arm_angle;
-  var left_lower_arm_angle=180+left_elbow_angle+left_upper_arm_angle;
+  var right_lower_arm_angle=right_elbow_angle+right_upper_arm_angle;
+  var left_lower_arm_angle=left_elbow_angle+left_upper_arm_angle;
   var left_leg_angle=left_hip_angle+left_knee_angle;
   var right_leg_angle=right_hip_angle+right_knee_angle;
   var left_lowleg_angle=left_ankle_angle+left_leg_angle;
   var right_lowleg_angle=right_ankle_angle+right_leg_angle;
 
+  var left_wrist_angle=left_lower_arm_angle;
+  var right_wrist_angle=right_lower_arm_angle;
   mvPushMatrix();
   mat4.translate(mvMatrix,mvMatrix,[waist_x,upperbodyposy,0]);
   drawSkeleton(gl,figureposx,figureposy,zoom_rate,modelRotationMatrix,upperbodyangle,
@@ -1311,6 +1102,7 @@ function drawSkeletonScene() {
         left_upper_arm_angle,right_upper_arm_angle,                
         left_hip_angle,right_hip_angle,                                
         right_lower_arm_angle,left_lower_arm_angle,
+        right_wrist_angle,left_wrist_angle,
         left_leg_angle,right_leg_angle,left_lowleg_angle,right_lowleg_angle);
   mvPopMatrix();}
 function loadShaders(pgl,fragment,vertex,withlight){

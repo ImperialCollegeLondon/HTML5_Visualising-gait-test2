@@ -1,0 +1,279 @@
+<html>
+  <head>
+    <title>Gait Visualisation!</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+    <script type="text/javascript" src="gl-matrix-min.js"></script>    
+    <script src="skeleton.js" type="text/javascript"></script>
+    <script src="skeleton_webgl-joints.js" type="text/javascript"></script>    
+    <script type="text/javascript" src="objreader.js"></script>
+    <script type="text/javascript" src="cube.js"></script>
+    <style type="text/css">      
+      .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 12px;
+        border-radius: 5px;   
+        background: #d3d3d3;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+      }
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%; 
+        background: #4CAFf0;
+        cursor: pointer;
+    }
+    .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #4CAF50;
+        cursor: pointer;
+    }
+    </style>
+    <!-- Fragment shader program -->
+    <script id="shader-fs" type="x-shader/x-fragment">    
+      precision mediump float;//define the precision of float
+      varying vec3 vLightWeighting;
+      uniform sampler2D uSampler;
+      uniform vec3 ulineColor;//color of the pixel
+      void main(void) {                                 
+          gl_FragColor=vec4(vLightWeighting[0]*ulineColor[0],vLightWeighting[1]*ulineColor[1],vLightWeighting[2]*ulineColor[2],1.0);
+      }
+    </script> 
+    <!-- Vertex shader program -->
+    <script id="shader-vs" type="x-shader/x-vertex">    
+     attribute vec3 aVertexPosition;//vertex of an object (passed from the java script program)
+     attribute vec3 aVertexNormal;
+     //uniform variable -> can access from the Java script
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    uniform mat3 uNMatrix;
+    uniform vec3 uAmbientColor;
+    uniform vec3 uLightingDirection;
+    uniform vec3 uDirectionalColor;
+    uniform bool uUsingLighting;
+    //varying variable -> to the fragment shader
+    varying vec3 vLightWeighting;
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);//calculate the position of the vertex
+        if (!uUsingLighting) 
+          vLightWeighting=vec3(1.0,1.0,1.0);          
+        else {
+          vec3 transformedNormal = uNMatrix * aVertexNormal;
+          float directionalLightWeighting =max(dot(transformedNormal,uLightingDirection),0.0);
+          vLightWeighting=uAmbientColor+uDirectionalColor*directionalLightWeighting;
+        }
+    }
+      
+    </script>
+
+    <script id="nolighting_shader-fs" type="x-shader/x-fragment">
+      precision mediump float;//define the precision of float
+      uniform vec3 ulineColor;//color of the pixel
+      void main(void) {                                 
+          gl_FragColor=vec4(ulineColor,1.0);
+       }
+    </script> 
+    <script id="nolighting_shader-vs" type="x-shader/x-vertex">    
+     attribute vec3 aVertexPosition;//vertex of an object (passed from the java script program)     
+     attribute vec3 aVertexNormal;//needs have this in this vertex shader as well, although we are not using it. 
+     //uniform variable -> can access from the Java script
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    //varying variable -> to the fragment shader
+    void main(void) {
+        vec3 dummy=aVertexNormal;//needs to do this; otherwise, the shader won't work
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);//calculate the position of the vertex    
+    }
+      
+    </script>
+    <style type="text/css">
+    #loadingtext {
+      position:absolute;
+      top:250px;
+      left:150px;
+      font-size:2em;
+      color:white;
+    }
+    </style>
+    <script type="text/javascript">
+    function StartVisualisation()
+    {
+      start();
+    }
+    var curSkeleton_Yangle=0;
+    var curSkeleton_Xangle=0;
+    var curSkeleton_Zangle=0;
+  
+    function RotateSkeletonY_change(newvalue)
+    {
+      var diff=newvalue-curSkeleton_Yangle;
+      curSkeleton_Yangle=newvalue;
+      var newRotationMatrix=mat4.create();
+      mat4.identity(newRotationMatrix,newRotationMatrix);  
+      mat4.rotate(newRotationMatrix,newRotationMatrix,degToRad(diff),[0,1,0]);
+      mat4.multiply(modelRotationMatrix,newRotationMatrix,modelRotationMatrix);  
+      var curvalue=document.getElementById("Yrotationvalue");
+      curvalue.innerHTML=curSkeleton_Yangle;
+      drawScene();
+    }
+    function RotateSkeletonX_change(newvalue)
+    {
+      var diff=newvalue-curSkeleton_Xangle;
+      curSkeleton_Xangle=newvalue;
+      var newRotationMatrix=mat4.create();
+      mat4.identity(newRotationMatrix,newRotationMatrix);  
+      mat4.rotate(newRotationMatrix,newRotationMatrix,degToRad(diff),[1,0,0]);
+      mat4.multiply(modelRotationMatrix,newRotationMatrix,modelRotationMatrix);  
+      var curvalue=document.getElementById("Xrotationvalue");
+      curvalue.innerHTML=curSkeleton_Xangle;
+      drawScene();
+    }
+    function RotateSkeletonZ_change(newvalue)
+    {
+      var diff=newvalue-curSkeleton_Zangle;
+      curSkeleton_Zangle=newvalue;
+      var newRotationMatrix=mat4.create();
+      mat4.identity(newRotationMatrix,newRotationMatrix);  
+      mat4.rotate(newRotationMatrix,newRotationMatrix,degToRad(diff),[0,0,1]);
+      mat4.multiply(modelRotationMatrix,newRotationMatrix,modelRotationMatrix);  
+      var curvalue=document.getElementById("Zrotationvalue");
+      curvalue.innerHTML=curSkeleton_Zangle;
+      drawScene();
+    }
+    function LeftUpperArm_Rotate_change(newvalue)
+    {
+      left_upper_arm_angle=newvalue;
+      var curvalue=document.getElementById("LeftUpperArm_value");
+      curvalue.innerHTML=left_upper_arm_angle;
+      drawScene();
+    }
+    function LeftLowerArm_Rotate_change(newvalue)
+    {
+      left_elbow_angle=newvalue;
+      var curvalue=document.getElementById("LeftLowerArm_value");
+      curvalue.innerHTML=left_elbow_angle;
+      drawScene();
+    }
+    function RightUpperArm_Rotate_change(newvalue)
+    {
+      right_upper_arm_angle=newvalue;
+      var curvalue=document.getElementById("RightUpperArm_value");
+      curvalue.innerHTML=right_upper_arm_angle;
+      drawScene();
+    }
+    function RightLowerArm_Rotate_change(newvalue)
+    {
+      right_elbow_angle=newvalue;
+      var curvalue=document.getElementById("RightLowerArm_value");
+      curvalue.innerHTML=right_elbow_angle;
+      drawScene();
+    }
+    function LeftThigh_Rotate_change(newvalue)
+    {
+      left_hip_angle=newvalue;
+      var curvalue=document.getElementById("LeftThigh_value");
+      curvalue.innerHTML=left_hip_angle;
+      drawScene();
+    }
+    function LeftLowerLeg_Rotate_change(newvalue)
+    {
+      left_knee_angle=newvalue;
+      var curvalue=document.getElementById("LeftLowerLeg_value");
+      curvalue.innerHTML=left_knee_angle;
+      drawScene();
+    }
+    function LeftAnkle_Rotate_change(newvalue)
+    {
+      left_ankle_angle=newvalue;
+      var curvalue=document.getElementById("LeftAnkle_value");
+      curvalue.innerHTML=left_ankle_angle;
+      drawScene();
+    }
+    function RightThigh_Rotate_change(newvalue)
+    {
+      right_hip_angle=newvalue;
+      var curvalue=document.getElementById("RightThigh_value");
+      curvalue.innerHTML=right_hip_angle;
+      drawScene();
+    }
+    function RightLowerLeg_Rotate_change(newvalue)
+    {
+      right_knee_angle=newvalue;
+      var curvalue=document.getElementById("RightLowerLeg_value");
+      curvalue.innerHTML=right_knee_angle;
+      drawScene();
+    }
+    function RightAnkle_Rotate_change(newvalue)
+    {
+      right_ankle_angle=newvalue;
+      var curvalue=document.getElementById("RightAnkle_value");
+      curvalue.innerHTML=right_ankle_angle;
+      drawScene();
+    }
+    </script>
+  </head>      
+   
+  <body onload="StartVisualisation()">
+  <div id="allcanvas">
+  <div id="showfilename" style="font-size:10px;font-family:Arial"></div>
+  <table><tr><td>
+    <canvas id="glcanvas" width="480" height="480">
+      Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+    </canvas></td><td>
+      <div style="font-family:'Arial';color:#4CAFF0">      
+      <table style="font-family:'Arial';color:#4CAFF0">
+        <tr><td><p style="font-family:'Arial';color:#4FFFFF">Skeleton</p></td></tr>
+        <tr><td>Heading:</td><td style="width:30px"><span id="Yrotationvalue">0</span></td><td><input type="range" min="-180" max="180" value="0" class="slider" id="Yrotation" oninput="RotateSkeletonY_change(this.value)"/></td><td><input type="button" value="reset" onclick="RotateSkeletonY_change(0)"/></td></tr>
+        <tr><td>Tilt:</td><td style="width:30px"><span id="Xrotationvalue">0</span></td><td><input type="range" min="-180" max="180" value="0" class="slider" id="Xrotation" oninput="RotateSkeletonX_change(this.value)"/></td><td><input type="button" value="reset" onclick="RotateSkeletonX_change(0)"/></td></tr>
+        <tr><td>Roll:</td><td style="width:30px"><span id="Zrotationvalue">0</span></td><td><input type="range" min="-180" max="180" value="0" class="slider" id="Zrotation" oninput="RotateSkeletonZ_change(this.value)"/></td><td><input type="button" value="reset" onclick="RotateSkeletonZ_change(0)"/></td></tr>      
+      </table>      
+       <table style="font-family:'Arial';color:#4CAFF0">
+        <tr><td><p style="font-family:'Arial';color:#4FFFFF">Left Arm</p></td></tr>
+        <tr><td>Shouder:</td><td style="width:30px"><span id="LeftUpperArm_value">10</span></td><td><input type="range" min="-180" max="90" value="0" class="slider" id="LeftUpperArm_rotation" oninput="LeftUpperArm_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="LeftUpperArm_Rotate_change(0)"/></td></tr>
+        <tr><td>Elbow:</td><td style="width:30px"><span id="LeftLowerArm_value">-20</span></td><td><input type="range" min="-180" max="90" value="0" class="slider" id="LeftLowerArm_rotation" oninput="LeftLowerArm_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="LeftLowerArm_Rotate_change(0)"/></td></tr>
+        </table>
+       <table style="font-family:'Arial';color:#4CAFF0">
+        <tr><td><p style="font-family:'Arial';color:#4FFFFF">Right Arm</p></td></tr>
+        <tr><td>Shouder:</td><td style="width:30px"><span id="RightUpperArm_value">10</span></td><td><input type="range" min="-180" max="90" value="0" class="slider" id="RightUpperArm_rotation" oninput="RightUpperArm_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="RightUpperArm_Rotate_change(0)"/></td></tr>
+        <tr><td>Elbow:</td><td style="width:30px"><span id="RightLowerArm_value">-20</span></td><td><input type="range" min="-180" max="90" value="0" class="slider" id="RightLowerArm_rotation" oninput="RightLowerArm_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="RightLowerArm_Rotate_change(0)"/></td></tr>
+        </table>
+       <table style="font-family:'Arial';color:#4CAFF0">
+        <tr><td><p style="font-family:'Arial';color:#4FFFFF">Left Leg</p></td></tr>
+        <tr><td>Hip:</td><td style="width:30px"><span id="LeftThigh_value">0</span></td><td><input type="range" min="-90" max="90" value="0" class="slider" id="LeftThigh_rotation" oninput="LeftThigh_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="LeftThigh_Rotate_change(0)"/></td></tr>        
+        <tr><td>Knee:</td><td style="width:30px"><span id="LeftLowerLeg_value">0</span></td><td><input type="range" min="-90" max="90" value="0" class="slider" id="LeftLowerLeg_rotation" oninput="LeftLowerLeg_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="LeftLowerLeg_Rotate_change(0)"/></td></tr>
+         <tr><td>Ankle:</td><td style="width:30px"><span id="LeftAnkle_value">0</span></td><td><input type="range" min="-90" max="90" value="0" class="slider" id="LeftAnkle_rotation" oninput="LeftAnkle_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="LeftAnkle_Rotate_change(0)"/></td></tr>
+      </table>       
+       <table style="font-family:'Arial';color:#4CAFF0">
+        <tr><td><p style="font-family:'Arial';color:#4FFFFF">Right Leg</p></td></tr>
+        <tr><td>Hip:</td><td style="width:30px"><span id="RightThigh_value">0</span></td><td><input type="range" min="-90" max="90" value="0" class="slider" id="RightThigh_rotation" oninput="RightThigh_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="RightThigh_Rotate_change(0)"/></td></tr>        
+        <tr><td>Knee:</td><td style="width:30px"><span id="RightLowerLeg_value">0</span></td><td><input type="range" min="-90" max="90" value="0" class="slider" id="RightLowerLeg_rotation" oninput="RightLowerLeg_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="RightLowerLeg_Rotate_change(0)"/></td></tr>
+        <tr><td>Ankle:</td><td style="width:30px"><span id="RightAnkle_value">0</span></td><td><input type="range" min="-90" max="90" value="0" class="slider" id="RightAnkle_rotation" oninput="RightAnkle_Rotate_change(this.value)"/></td><td><input type="button" value="reset" onclick="RightAnkle_Rotate_change(0)"/></td></tr>
+      </table>
+    </div>
+    </td></tr></table>
+    <br/>
+    </div>    
+     <h2  hidden="1">Point light</h2>
+    <table  hidden="1">
+    <tr><td><b>Location</b></td><td>X:<input type="text" id="lightDirectionX" value="-12.0"/></td><td>Y:<input type="text" id="lightDirectionY" value="2.0"/></td>
+    <td>Z:<input type="text" id="lightDirectionZ" value="2.0"/></td></tr>
+    <tr><td><b>Color</b></td> <td>R:<input type="text" id="directionalR" value="0.2"/></td>
+    <td>G:<input type="text" id="directionalG" value="0.2"/></td>
+    <td>B:<input type="text" id="directionalB" value="0.2"/></td></tr>
+    </table>
+    <h2  hidden="1">Ambient Light</h2>
+    <table hidden="1">
+    <tr><td><b>Color</b></td><td>R: <input type="text" id="ambientR" value="0.2"/></td>
+    <td>G: <input type="text" id="ambientG" value="0.2"/></td>
+    <td>B: <input type="text" id="ambientB" value="0.2"/></td>
+    </tr></table>
+    <br/><br/>
+  </body>
+</html>

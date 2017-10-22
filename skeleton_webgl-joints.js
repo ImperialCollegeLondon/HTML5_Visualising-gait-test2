@@ -1,10 +1,10 @@
 //*************************************************************
 // Gait visualisation
 //
-//
+// allow user to play with the 3D skeleton (i.e. adjust the joint angles etc)
 //
 // Benny Lo 
-//July 28 2017
+//Oct 22 2017
 //****************************************************************
 
 var glcanvas;//canvas on the web page
@@ -16,23 +16,20 @@ var dummyfloorNormalBuffer=null;
 var mvMatrix; //model-view matrix
 var pMatrix;  //projection matrix
 var mvMatrixStack=[];//stack for storing the mvMatrix
-//var imageisloaded=false;//make sure the texture image is loaded before rendering
 var imageisloaded=true;//make sure the texture image is loaded before rendering
-var moonTexture;
 var mouseDown=false;
 var lastMouseX=null;
 var lastMouseY=null;
 var modelRotationMatrix;
 var modelRotationMatrixStack=[];
-var moonTexture;
 var timer;
-var animation_timer;
+var redraw_timer;
 var counter=0;
 var currentlyPressedKeys={};//the key being pressed
 //var zoom_rate=0;
 var zoom_rate=5;
-//var figureposx=-15;
-var figureposx=-10;
+//var figureposx=-10;
+var figureposx=0;
 var figureposy=2;
 var nosteps=100;
 var xinc=31/nosteps;
@@ -86,13 +83,13 @@ var right_knee_angle=yangle;;
 var left_ankle_angle=0;
 var right_ankle_angle=0;
 //--------------
-//animation
-var animation_step=0;
 var upperbodyangle=0;
 var waist_x=0;
 var upperbodyposy=0;
 var right_leg_first=false;
 var walking_direction=1;
+//-----------------
+var cube;
 //------------------------
 // start - initialise the buffer and GL
 function start() {
@@ -106,10 +103,11 @@ function start() {
   modelRotationMatrix=mat4.create();  
   mat4.identity(modelRotationMatrix,modelRotationMatrix);  
   //-------
-  mat4.rotate(modelRotationMatrix,modelRotationMatrix,degToRad(90),[0,1,0]);//side view
+  //mat4.rotate(modelRotationMatrix,modelRotationMatrix,degToRad(90),[0,1,0]);//side view
   //-------
   initShaders(); //initialise the shaders     
   initBuffers();    
+  cube=init_cube_buffers(gl);
   init_Skeleton(gl,shoulder_width,upper_arm_length,arm_diameter,upper_arm_y_offset,upper_arm_z_offset,                
         lower_arm_length,lower_arm_diameter,lower_arm_x_offset,lower_arm_y_offset,lower_arm_z_offset,
         hand_length,hand_diameter,hip_width,thigh_y_offset,thigh_length,thigh_diameter,
@@ -122,279 +120,26 @@ function start() {
   drawScene();//draw the scene again    
   document.onkeydown=handleKeyDown;//handle key down events
   document.onkeyup=handleKeyUp;//handle key up events
-  setAnimatinonTimer();
+  //setAnimatinonTimer();
+  setredrawtimer();
 }
-function setAnimatinonTimer(){animation_timer=window.setTimeout(OnAnimationTimer,10);}
-function resetAnimationTimer(){
-  if (animation_timer){
-    window.clearTimeout(animation_timer);
-    animation_timer=null;
-  }  
-  setAnimatinonTimer();}
-
-function OnAnimationTimer() { 
-  if (animation_step<70)
+function setredrawtimer(){
+  redraw_timer=window.setTimeout(OnredrawTimer,10);}
+function resetredrawtimer(){
+  if (redraw_timer)
   {
-    resetAnimationTimer();
-    switch (animation_step)
-    {
-      case 0:upperbodyangle=0;break;//bend forward
-      case 1:case 2:case 3: case 4: case 5://raising the right knee      
-      upperbodyposy-=0.02;
-      waist_x+=(walking_direction*0.1);
-      upperbodyangle+=0.5;
-      if (right_leg_first)
-      {
-        right_hip_angle-=5;
-        right_knee_angle+=10;
-        left_upper_arm_angle-=1;
-        right_upper_arm_angle+=1;      
-      }
-      else {
-        left_hip_angle-=5;
-        left_knee_angle+=10;
-        right_upper_arm_angle-=1;
-        left_upper_arm_angle+=1;      
-      }
-      break;
-      case 6:case 7:case 8: case 9: case 10:
-      if (right_leg_first)
-      {
-        right_knee_angle-=10;
-        left_hip_angle+=2;
-        left_knee_angle+=2;
-        left_upper_arm_angle-=1;
-        right_upper_arm_angle+=1;
-      }
-      else {
-        left_knee_angle-=10;
-        right_hip_angle+=2;
-        right_knee_angle+=2;
-        right_upper_arm_angle-=1;
-        left_upper_arm_angle+=1;
-      }
-      //console.log("right heel strike");
-      break;//continue raising the lower leg -> right heel strike
-      case 11:case 12:case 13:case 14: case 15:
-      waist_x+=(walking_direction*0.1);
-      if (right_leg_first)
-      {
-        left_hip_angle+=2;//leanng forward (bend the left leg)
-        left_upper_arm_angle-=1;
-        right_upper_arm_angle+=1;
-      }
-      else {
-        right_hip_angle+=2;//leanng forward (bend the left leg)
-        right_upper_arm_angle-=1;
-        left_upper_arm_angle+=1;        
-      }
-      break;
-      case 16:case 17:case 18:case 19: case 20://right foot flat
-      upperbodyposy+=0.02;
-      if (right_leg_first)
-      {
-        right_hip_angle+=5;
-        left_knee_angle+=5;
-        left_upper_arm_angle+=1;
-        right_upper_arm_angle-=1;
-      }
-      else {
-        left_hip_angle+=5;
-        right_knee_angle+=5;
-        right_upper_arm_angle+=1;
-        left_upper_arm_angle-=1; 
-        //console.log("right foot flat");
-      }
-      break;
-      case 21:case 22:case 23:case 24:case 25://mid stance
-      upperbodyangle-=0.5;   
-      if (right_leg_first)
-      {
-        left_hip_angle-=2;
-        left_knee_angle-=2;      
-        left_upper_arm_angle+=1;
-        right_upper_arm_angle-=1;
-      }
-      else {
-        right_hip_angle-=2;
-        right_knee_angle-=2;      
-        right_upper_arm_angle+=1;
-        left_upper_arm_angle-=1;
-      }
-     // console.log("mid stance");
-      break;
-      case 26:case 27:case 28:case 29:case 30://standing positinon
-      if (right_leg_first)
-      {
-        //left_hip_angle-=2;
-        //left_knee_angle-=5;     
-        left_hip_angle-=5;
-        left_knee_angle+=3;     
-        left_upper_arm_angle+=1;
-        right_upper_arm_angle-=1;          
-      }
-      else {
-        //right_hip_angle-=2;
-        //right_knee_angle-=5;     
-        right_hip_angle-=5;
-        right_knee_angle+=3;     
-        right_upper_arm_angle+=1;
-        left_upper_arm_angle-=1;  
-      }
-      break;
-      case 31:case 32:case 33: case 34:case 35://contunue swing the left leg
-      upperbodyposy-=0.02;
-      upperbodyangle+=0.5;
-      if (right_leg_first)
-      {
-        //left_hip_angle-=5;
-        left_hip_angle-=2;
-        left_knee_angle+=2;
-        //left_knee_angle+=10;
-        left_upper_arm_angle+=1;
-        right_upper_arm_angle-=1; 
-      }
-      else {
-        //right_hip_angle-=5;
-        //right_knee_angle+=10;
-        right_hip_angle-=2;
-        right_knee_angle+=2;
-        right_upper_arm_angle+=1;
-        left_upper_arm_angle-=1; 
-      }
-      break;
-      case 36:case 37:case 38:case 39:case 40://right heel off
-      if (right_leg_first)
-      {
-        left_knee_angle-=10;
-        right_hip_angle+=2;
-        right_knee_angle+=2;
-        left_upper_arm_angle+=1;
-        right_upper_arm_angle-=1; 
-      }
-      else {
-        right_knee_angle-=10;
-        left_hip_angle+=2;
-        left_knee_angle+=2;
-        right_upper_arm_angle+=1;
-        left_upper_arm_angle-=1; 
-      }
-      break;
-      case 41:case 42:case 43:case 44: case 45://right toe off
-      waist_x+=(walking_direction*0.1);
-      if (right_leg_first)
-      {
-        right_hip_angle+=2;//leanng forward (bend the right leg)
-        left_upper_arm_angle+=1;
-        right_upper_arm_angle-=1; 
-      }
-      else {
-        left_hip_angle+=2;//leanng forward (bend the right leg)
-        right_upper_arm_angle+=1;
-        left_upper_arm_angle-=1; 
-      }
-      break;
-      case 46:case 47:case 48:case 49: case 50://left foot flat
-      upperbodyposy+=0.02;    
-      if (right_leg_first)
-      {
-        left_hip_angle+=5;
-        right_knee_angle+=5;
-        left_upper_arm_angle-=1;
-        right_upper_arm_angle+=1;   
-      }
-      else {
-        right_hip_angle+=5;
-        left_knee_angle+=5;
-        right_upper_arm_angle-=1;
-        left_upper_arm_angle+=1;   
-      }
-      break;
-      case 51:case 52:case 53:case 54:case 55://mid stance
-      upperbodyangle-=0.5;   
-      if (right_leg_first)
-      {
-        right_hip_angle-=2;
-        right_knee_angle-=2;      
-        left_upper_arm_angle-=1;
-        right_upper_arm_angle+=1;   
-      }
-      else {
-        left_hip_angle-=2;
-        left_knee_angle-=2;      
-        right_upper_arm_angle-=1;
-        left_upper_arm_angle+=1;   
-      }
-      break;
-      case 56:case 57:case 58:case 59:case 60://standing positinon
-      if (right_leg_first)
-      {
-        //right_hip_angle-=2;
-        //right_knee_angle-=5;        
-        right_hip_angle-=5;
-        right_knee_angle+=3;        
-        left_upper_arm_angle-=1;
-        right_upper_arm_angle+=1;     
-      }
-      else {
-        //left_hip_angle-=2;
-        //left_knee_angle-=5;        
-        left_hip_angle-=5;
-        left_knee_angle+=3;        
-        right_upper_arm_angle-=1;
-        left_upper_arm_angle+=1;    
-      }
-      break;
-      case 61:case 62:case 63:case 64: case 65:
-      upperbodyposy-=0.02;
-      upperbodyangle+=0.5;
-      waist_x+=0.05;
-      if (right_leg_first)
-      {
-        //right_hip_angle-=5;
-        right_hip_angle-=2;
-        //right_knee_angle+=10;
-        right_knee_angle+=2;
-        left_upper_arm_angle-=1;
-        right_upper_arm_angle+=1;
-      }
-      else {
-      //left_hip_angle-=5;
-        left_hip_angle-=2;
-        //left_knee_angle+=10;
-        left_knee_angle+=2;
-        right_upper_arm_angle-=1;
-        left_upper_arm_angle+=1;
-      }
-      break;
-      /*default: 
-      if (walking_direction)
-      {
-        if (waist_x>14)
-          waist_x=0;
-      //  walking_direction=-1;
-      }
-      animation_step=-1;break; */ 
-      default: upperbodyposy=0;
-        if (walking_direction)
-        {
-          if (waist_x>14)
-           waist_x=0;
-        }
-        animation_step=5;break;  
-      
-    }
-    drawScene();
-    animation_step++;        
+    window.clearTimeout(redraw_timer);
+    redraw_timer=null;
   }
+  setredrawtimer();
 }
-//-----------
+function OnredrawTimer(){
+  drawScene();
+  resetredrawtimer();
+}
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 function initBuffers(){//divide the sphere into triangles through dividing latitudes and longitude bands
   //divide the sphere into triangles through dividing latitudes and longitude bands
-    var radius=parseFloat(document.getElementById("radius").value);;//radius of the sphere
-    var roundness=parseInt(document.getElementById("roundness").value);;
-    var norows=parseFloat(document.getElementById("norows").value);
     //--------
     floorPositionBuffer=gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER,floorPositionBuffer);
@@ -587,12 +332,14 @@ function drawScene() {
         parseFloat(document.getElementById("directionalB").value));
   gl.uniform3f(shaderProgram.lineColor,1.0,1.0,1.0);
   gl.uniform1i(shaderProgram.useLightingUniform,true);  
-  var right_lower_arm_angle=right_elbow_angle+right_upper_arm_angle;
-  var left_lower_arm_angle=left_elbow_angle+left_upper_arm_angle;
-  var left_leg_angle=left_hip_angle+left_knee_angle;
-  var right_leg_angle=right_hip_angle+right_knee_angle;
-  var left_lowleg_angle=left_ankle_angle+left_leg_angle;
-  var right_lowleg_angle=right_ankle_angle+right_leg_angle;
+  //var right_lower_arm_angle=180+right_elbow_angle+right_upper_arm_angle;
+  //var left_lower_arm_angle=180+left_elbow_angle+left_upper_arm_angle;
+  var right_lower_arm_angle=right_elbow_angle;
+  var left_lower_arm_angle=left_elbow_angle;
+  var left_leg_angle=left_knee_angle;//left_hip_angle+left_knee_angle;
+  var right_leg_angle=right_knee_angle;//right_hip_angle+right_knee_angle;
+  var left_lowleg_angle=left_ankle_angle;//+left_leg_angle;
+  var right_lowleg_angle=right_ankle_angle;//+right_leg_angle;
 
   var left_wrist_angle=left_lower_arm_angle;
   var right_wrist_angle=right_lower_arm_angle;
@@ -606,6 +353,8 @@ function drawScene() {
         right_lower_arm_angle,left_lower_arm_angle,
         right_wrist_angle,left_wrist_angle,
         left_leg_angle,right_leg_angle,left_lowleg_angle,right_lowleg_angle);
+
+
   mvPopMatrix();
 }
 function loadShaders(fragment,vertex,withlight){

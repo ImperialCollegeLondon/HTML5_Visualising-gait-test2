@@ -10,10 +10,9 @@
     <script type="text/javascript" src="leftfoot_webgl-gait.js"></script>
     <script type="text/javascript" src="rightfoot_webgl-gait.js"></script>
     <script type="text/javascript" src="topbanner.js"></script>
-    <script type="text/javascript" src="cylinder.js"></script>
     <script type="text/javascript" src="skeleton.js"></script>
     <script type="text/javascript" src="fileparser.js"></script>
-    <script type="text/javascript" src="StickFigure.js"></script>    
+    <!--<script type="text/javascript" src="StickFigure.js"></script>    -->
     <script type="text/javascript" src="stlreader.js"></script>
     <script type="text/javascript" src="objreader.js"></script>
     <!-- Fragment shader program -->
@@ -92,6 +91,7 @@
     }
     </style>
     <script type="text/javascript">
+      var nowplayingback=1;
       function playbackslower()
       {
         if (playbackspeed<50)
@@ -102,6 +102,20 @@
         if (playbackspeed>1)
           playbackspeed--;
       }
+      function pauseplay()
+      {
+        var buttonname=document.getElementById("pauseplay");
+        if (nowplayingback)
+        {
+          window.clearTimeout(timer);   timer=null;  
+          buttonname.value="play";
+        }
+        else {
+          setTimer();
+          buttonname.value="pause";
+        }
+        nowplayingback=!nowplayingback;
+      }
     function StartVisualisation()
     {
       start();draw();
@@ -110,7 +124,7 @@
       var doc=document.getElementById("documentation");
       doc.innerHTML="";
       var fileselect=document.getElementById("fileselect");
-      fileselect.innerHTML="Play back speed: <input type='button' value='slower' onClick='playbackslower()'><input type='button' value='faster' onClick='playbackfaster()'>";
+      fileselect.innerHTML="";
       var nameemail=document.getElementById("nameemail");
       nameemail.innerHTML="";
       var showcanvas=document.getElementById("allcanvas");
@@ -128,7 +142,7 @@
   <div id="fileselect">
   You can choose a subject data files (All data is provided by the FAU), <br/>then click start, and real-time visualisation will be shown on the web browser<br/><br/>
   Select the subject file:
-  <select id="filechosen">
+  <select id="filechosen" style="width:100;height:25;font-size:14"">
   <option value="2">GA216042</option>
   <option value="3">GA216043</option>
   <option value="4">GA216044</option>
@@ -137,7 +151,7 @@
   <option value="7">GA216047</option>
   <option value="9">GA216049</option>
   </select>
-  <input type="button" id="selectfile" value="Start" onclick="StartVisualisation()" />
+  <input type="button" id="selectfile" value="Start" onclick="StartVisualisation()" style="width:100;font-family:Arial;font-size:140"/>
   <br/></div>  
   <div id="documentation">
   <hr/>
@@ -151,21 +165,22 @@
   <b>Source code:</b>The source code can be directly downloaded from the web site (via view source option on your browser).</p>
   <p>Following assumptions were used in building the 3D model for visualisation:</p>
   <ul><li>The walking distance is 10 meters</li>
-  <li>Healthy subjects with normal gaits are collected in the dataset</li>
-  <li>The subjects are of similar heights</li>
-  <li>The subjects have roughly equal strike length</li>
-  <li>The subjects arms are swinging at the same frequency as per the gait cycle</li>
+  <li>Healthy subjects with normal gaits are collected</li>
+  <li>Subjects are of similar heights</li>
+  <li>Subjects have roughly equal strike length</li>
+  <li>Arms are swinging at the same frequency as per the gait cycle</li>
   </ul>
   <h3>Skeleton Model</h3>
   <p>The skeleton is an articulated 3D model and almost all joint angles can be rotated/controlled (except the wrists, where wrists rotation was not implemented)</p>
   <table><tr valign="top"><td>
   <ul><li>
-  Each joint segment is separately extracted from a 3D skeleton model and built in the Web GL environment</li><li>Joint segments are normalised first before scaling to fit the Web GL environment</li>
+  Each joint segment is separately extracted from a 3D skeleton model and built in the HTML5 Web GL environment</li><li>Joint segments are normalised first before scaling to fit the Web GL environment</li>
   <li>The skeleton model is charactertised by its joint segment length/width and joint location</li><li>The joint segment length (e.g. upper leg length) can be adjusted individually (via modifying the specific parameters)</li><li>
   Each joint segment is rotated (around it's mid-point) and translated to be positioned at the respective joint locaiton</li>
   </ul>
   </td><td>
-   <img src='images/skeleton1.jpg' alt="skeleton" height=200px/></td></tr></table>
+    <iframe src="./skeleton_joints.html" height=480px width=840px></iframe>
+   <!--<img src='images/skeleton1.jpg' alt="skeleton" height=200px/>--></td></tr></table>
    <h3>Simulation</h3>
    <p>The walking gait is simulated based on the timing (heel strikes, toe off, etc. timing) and gait parameters(foot angle, displacement etc) extracted from the raw sensor signals. <br/>
    Each of the different phases within gait cycle was programmed (i.e. heel strike, mid-stance, toe off, etc.) and simulated (based on the timing and displacement information)<br/>
@@ -177,7 +192,8 @@
     <canvas id="glcanvas" tabindex='1' width="1024" height="480"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
     </canvas><br/>
-    <table hidden="1"><tr><td><b>Left foot orientation</b></td>  <td><b>Right foot orientation</b></td></tr>
+    Play back: <input type='button' id='pauseplay' value='pause' onClick='pauseplay()' style='width:80px'>  <input type='button' value='slower' onClick='playbackslower()' style='width:80px'><input type='button' value='faster' onClick='playbackfaster()' style='width:80px'><br/>
+    <table><tr><td><b>Left foot orientation</b></td>  <td><b>Right foot orientation</b></td></tr>
     <tr> <td>    
     <canvas tabindex='1' id="leftfootcanvas" width="512" height="240"><!--adding tabindex=1 enable key down/up events-->
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
