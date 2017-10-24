@@ -567,6 +567,9 @@ function drawSkeleton(pgl,pfigureposx,pfigureposy,pzoom_rate,pmodelRotationMatri
             2.0,2.0,2.0);//color
   }
   //right lower arm  
+  var pright_upper_z=-(skeleton_upper_arm_length)*Math.sin(degToRad(pright_upper_arm_angle-20));
+  var pright_upper_y=-(skeleton_upper_arm_length)*Math.cos(degToRad(pright_upper_arm_angle-20));  
+
   var right_lower_z=-(skeleton_lower_arm_length)*Math.sin(degToRad(pright_lower_arm_angle));
   var right_lower_y=-(skeleton_lower_arm_length)*Math.cos(degToRad(pright_lower_arm_angle));
     /*draw_cube(gl,shaderProgram,mvMatrix,pMatrix,cube[0],cube[1],cube[2],
@@ -575,15 +578,15 @@ function drawSkeleton(pgl,pfigureposx,pfigureposy,pzoom_rate,pmodelRotationMatri
     -(skeleton_shoulder_width-skeleton_lower_arm_diameter)-4,
            right_lower_y+right_upper_y+skeleton_upper_arm_y_offset,
            right_lower_z+right_upper_z);//translate to x,y,z
-    //5,0.9,-0.3*/
+    //5,0.9,-0.3*/    
   if (right_lower_arm_VerticeBuffer)
   {
     drawBones(pgl,pfigureposx,pfigureposy,pzoom_rate,pmodelRotationMatrix,
         skeleton_mvMatrix,skeleton_pMatrix,pshaderProgram, 
         right_lower_arm_VerticeBuffer,right_lower_arm_NormalBuffer,right_lower_arm_IndexBuffer,//vertex,normal,buffers
            -(skeleton_shoulder_width-skeleton_lower_arm_diameter),
-           right_lower_y+right_upper_y+skeleton_upper_arm_y_offset,
-           right_lower_z+right_upper_z,//position
+           right_lower_y+pright_upper_y+skeleton_upper_arm_y_offset,
+           right_lower_z+pright_upper_z,//position
             skeleton_lower_arm_diameter,skeleton_lower_arm_length,skeleton_lower_arm_diameter,//scale
             pright_lower_arm_angle,0,0,//rotation
             2.0,2.0,2.0);//color
